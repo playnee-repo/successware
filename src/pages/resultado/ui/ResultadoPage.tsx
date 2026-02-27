@@ -2,11 +2,9 @@ import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Loader2, AlertCircle, ArrowLeft, Save, ChevronRight, FileText } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
+import { BlockNoteField } from '@/shared/ui/blocknote-field'
 import { buildInsumoContentPreview } from '@/shared/lib/insumo-preview'
 import { ScrollArea } from '@/shared/ui/scroll-area'
 import { supabase } from '@/shared/api/supabase'
@@ -78,86 +76,29 @@ function ResultadoEditableContent({
   }
 
   return (
-    <Tabs defaultValue="editar" className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <TabsList className="h-8 p-0.5 bg-zinc-800/60 border border-zinc-700/40 rounded-lg w-auto inline-flex">
-          <TabsTrigger
-            value="editar"
-            className={cn(
-              'h-7 text-xs px-3 rounded-md font-medium',
-              'data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-100',
-              'data-[state=inactive]:text-zinc-500'
-            )}
-          >
-            Editar
-          </TabsTrigger>
-          <TabsTrigger
-            value="preview"
-            className={cn(
-              'h-7 text-xs px-3 rounded-md font-medium',
-              'data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-100',
-              'data-[state=inactive]:text-zinc-500'
-            )}
-          >
-            Preview
-          </TabsTrigger>
-        </TabsList>
-
+    <div className="flex flex-col gap-0">
+      {/* Barra fixa ao rolar: Salvar sempre visível e disponível */}
+      <div className="sticky top-0 z-20 flex items-center justify-end gap-3 py-3 -mx-6 px-6 mb-3 bg-zinc-900/95 border-b border-zinc-800/80 backdrop-blur-sm">
         <Button
           onClick={handleSave}
           disabled={updateContent.isPending}
-          className="h-8 gradient-primary border-0 text-white text-xs gap-1.5"
+          className="h-9 px-4 gradient-primary border-0 text-white text-sm font-medium gap-2 shadow-lg shadow-indigo-500/20 hover:opacity-90"
         >
-          {updateContent.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-          Salvar
+          {updateContent.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {updateContent.isPending ? 'Salvando...' : 'Salvar'}
         </Button>
       </div>
-
-      <TabsContent value="editar" className="mt-0">
-        <textarea
-          value={markdownText}
-          onChange={(e) => setMarkdownText(e.target.value)}
-          className="w-full min-h-[600px] bg-zinc-800/40 border border-zinc-700/60 rounded-lg p-4 text-sm text-zinc-300 font-mono leading-relaxed resize-y focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/30 placeholder:text-zinc-600"
-          placeholder="Conteúdo em Markdown..."
-          spellCheck={false}
-        />
-      </TabsContent>
-
-      <TabsContent value="preview" className="mt-0">
-        <div className="min-h-[600px] bg-zinc-800/40 border border-zinc-700/60 rounded-lg p-6 text-sm text-zinc-300 leading-relaxed">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
-              strong: ({ children }) => <strong className="font-semibold text-zinc-100">{children}</strong>,
-              em: ({ children }) => <em className="italic text-zinc-400">{children}</em>,
-              ul: ({ children }) => <ul className="list-disc ml-5 mb-3 space-y-1">{children}</ul>,
-              ol: ({ children }) => <ol className="list-decimal ml-5 mb-3 space-y-1">{children}</ol>,
-              li: ({ children }) => <li className="leading-relaxed text-zinc-300">{children}</li>,
-              h1: ({ children }) => <h1 className="text-xl font-bold text-zinc-100 mt-6 mb-3 first:mt-0 pb-2 border-b border-zinc-700/60">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-base font-semibold text-zinc-100 mt-5 mb-2 first:mt-0">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-sm font-medium text-zinc-200 mt-4 mb-1.5 first:mt-0">{children}</h3>,
-              h4: ({ children }) => <h4 className="text-sm font-medium text-zinc-300 mt-3 mb-1 first:mt-0">{children}</h4>,
-              code: ({ children, className }) => {
-                const isBlock = className?.includes('language-')
-                return isBlock
-                  ? <code className="block">{children}</code>
-                  : <code className="bg-zinc-700/80 px-1.5 py-0.5 rounded text-[12px] font-mono text-zinc-200">{children}</code>
-              },
-              pre: ({ children }) => <pre className="bg-zinc-900/80 border border-zinc-700/60 p-4 rounded-lg overflow-x-auto text-[12px] my-3 font-mono text-zinc-300">{children}</pre>,
-              table: ({ children }) => <div className="overflow-x-auto my-3"><table className="w-full text-sm border-collapse">{children}</table></div>,
-              thead: ({ children }) => <thead className="bg-zinc-800/60">{children}</thead>,
-              th: ({ children }) => <th className="border border-zinc-700 px-3 py-2 text-left text-zinc-200 font-semibold text-xs uppercase tracking-wider">{children}</th>,
-              td: ({ children }) => <td className="border border-zinc-700 px-3 py-2 text-zinc-400">{children}</td>,
-              blockquote: ({ children }) => <blockquote className="border-l-2 border-indigo-500/50 pl-4 italic text-zinc-500 my-3">{children}</blockquote>,
-              hr: () => <hr className="border-zinc-700/60 my-4" />,
-            }}
-          >
-            {markdownText}
-          </ReactMarkdown>
-        </div>
-      </TabsContent>
-    </Tabs>
+      <BlockNoteField
+        value={markdownText}
+        onChange={setMarkdownText}
+        minHeight="600px"
+        placeholder="Conteúdo em Markdown... (títulos, listas, negrito, código)"
+      />
+    </div>
   )
 }
 

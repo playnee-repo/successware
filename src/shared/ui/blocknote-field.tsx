@@ -18,6 +18,15 @@ export interface BlockNoteFieldProps {
   variant?: 'default' | 'compact'
 }
 
+/** Reduz quebras de linha excessivas para evitar documento gigante (muitos blocos vazios). */
+function normalizeMarkdownNewlines(md: string): string {
+  if (!md?.trim()) return md ?? ''
+  return md
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 /**
  * Campo de texto rico baseado em blocos (BlockNote).
  * Valor é persistido como Markdown; aceita texto simples ou markdown na entrada.
@@ -32,27 +41,29 @@ export function BlockNoteField({
 }: BlockNoteFieldProps) {
   const effectiveMinHeight = minHeight ?? (variant === 'compact' ? '72px' : '120px')
   const editor = useCreateBlockNote({ initialContent: undefined })
-  const lastSyncedValue = useRef<string>(value)
+  /** Ref para não recarregar quando o pai re-renderiza com o mesmo valor; null = ainda não sincronizamos. */
+  const lastSyncedValue = useRef<string | null>(null)
 
   const loadValueIntoEditor = useCallback(
     async (val: string) => {
       if (!editor) return
+      const normalized = normalizeMarkdownNewlines(val ?? '')
       try {
-        const blocks = val?.trim()
-          ? await editor.tryParseMarkdownToBlocks(val)
+        const blocks = normalized
+          ? await editor.tryParseMarkdownToBlocks(normalized)
           : [{ type: 'paragraph', content: '' }]
         if (blocks.length) {
           editor.replaceBlocks(editor.document, blocks)
         }
       } catch {
-        editor.replaceBlocks(editor.document, [{ type: 'paragraph', content: val || '' }])
+        editor.replaceBlocks(editor.document, [{ type: 'paragraph', content: normalized || '' }])
       }
       lastSyncedValue.current = val
     },
     [editor]
   )
 
-  // Sincronizar editor quando value mudar (ex.: carregamento do banco ou troca de definição)
+  // Sincronizar editor quando value mudar (carregamento do banco ou troca de insumo/definição)
   useEffect(() => {
     if (!editor) return
     if (lastSyncedValue.current === value) return
@@ -63,7 +74,9 @@ export function BlockNoteField({
     async (editorInstance: { document: unknown[]; blocksToMarkdownLossy: (doc: unknown[]) => Promise<string> }) => {
       try {
         const markdown = await editorInstance.blocksToMarkdownLossy(editorInstance.document)
-        onChange(markdown ?? '')
+        const normalized = normalizeMarkdownNewlines(markdown ?? '')
+        lastSyncedValue.current = normalized
+        onChange(normalized)
       } catch {
         // ignore
       }
