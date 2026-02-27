@@ -54,10 +54,10 @@ export function BlockNoteField({
           ? await editor.tryParseMarkdownToBlocks(normalized)
           : [{ type: 'paragraph', content: '' }]
         if (blocks.length) {
-          editor.replaceBlocks(editor.document, blocks)
+          editor.replaceBlocks(editor.document, blocks as Parameters<typeof editor.replaceBlocks>[1])
         }
       } catch {
-        editor.replaceBlocks(editor.document, [{ type: 'paragraph', content: normalized || '' }])
+        editor.replaceBlocks(editor.document, [{ type: 'paragraph', content: normalized || '' }] as Parameters<typeof editor.replaceBlocks>[1])
       }
       lastSyncedValue.current = val
     },

@@ -38,9 +38,10 @@ import { genAI } from '@/shared/config/gemini'
 import { DEFINICOES_TEMPLATES } from '@/shared/config/definicoes-templates'
 import { getAgenteColor } from '@/shared/lib/agent-colors'
 
+type AtividadeRow = Database['public']['Tables']['atividades']['Row']
+type DisciplinaDB = AtividadeRow['disciplina']
 type Disciplina = string
 type Secao = 'atividades' | 'definicoes' | 'agentes'
-type AtividadeRow = Database['public']['Tables']['atividades']['Row']
 
 const DISCIPLINAS: string[] = ['descoberta', 'requisitos', 'arquitetura', 'construcao', 'qualidade']
 
@@ -363,7 +364,7 @@ function NovaDisciplinaDialog({
     try {
       await createMut.mutateAsync({
         nome: 'Nova Atividade',
-        disciplina: discId.trim().toLowerCase().replace(/\s+/g, '_'),
+        disciplina: discId.trim().toLowerCase().replace(/\s+/g, '_') as DisciplinaDB,
         agente: agentes[0]?.id ?? 'SCRIBE',
         ordem: 1,
         descricao: null,
@@ -603,10 +604,11 @@ function SecaoAtividades({
 
   async function handleSave(data: AtividadeFormData & { id?: string }) {
     if (data.id) {
-      await updateMut.mutateAsync({ id: data.id, ...data })
+      const { id, ...rest } = data
+      await updateMut.mutateAsync({ id, ...rest } as Parameters<typeof updateMut.mutateAsync>[0])
       toast('Atividade atualizada')
     } else {
-      await createMut.mutateAsync(data)
+      await createMut.mutateAsync({ ...data, descricao: data.descricao || null, icone: data.icone || null } as Parameters<typeof createMut.mutateAsync>[0])
       toast('Atividade criada')
     }
   }
@@ -1297,7 +1299,8 @@ function AgenteForm({
     if (!isDirty) return
     setSaving(true)
     try {
-      await updateMut.mutateAsync({ id: agente.id, ...draft })
+      const { id: _omit, ...rest } = draft
+      await updateMut.mutateAsync({ id: agente.id, ...rest })
       toast('Agente salvo')
       onSaved()
     } catch (e) {
