@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /c/Users/micha/Documents/git/prd-v2 && supabase migration up 2>&1)",
+      "Bash(cd /c/Users/micha/Documents/git/prd-v2 && npx supabase migration up 2>&1)",
+      "Bash(cd /c/Users/micha/Documents/git/prd-v2 && npx supabase db reset 2>&1)",
+      "Bash(cd:*)",
+      "Bash(head:*)"
+    ]
+  }
+}
