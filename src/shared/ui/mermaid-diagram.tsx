@@ -2,19 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import mermaid from 'mermaid'
 import { cn } from '@/shared/lib/utils'
 import { normalizeMermaidCodeForRender } from '@/shared/lib/mermaid-utils'
+import { useTheme } from '@/shared/lib/theme-provider'
 
-mermaid.initialize({
+const MERMAID_OPTS = {
   startOnLoad: false,
-  theme: 'dark',
-  securityLevel: 'loose',
-  logLevel: 'error',
+  securityLevel: 'loose' as const,
+  logLevel: 'error' as const,
   flowchart: {
     useMaxWidth: false,
     padding: 24,
     nodeSpacing: 60,
     rankSpacing: 50,
   },
-})
+}
 
 export interface MermaidDiagramProps {
   /** Código do diagrama (ex.: "graph TD\nA --> B") */
@@ -30,6 +30,8 @@ export function MermaidDiagram({ code, className }: MermaidDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [svg, setSvg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { mode } = useTheme()
+  const mermaidTheme = mode === 'dark' ? 'dark' : 'default'
 
   useEffect(() => {
     if (!code?.trim()) {
@@ -37,6 +39,7 @@ export function MermaidDiagram({ code, className }: MermaidDiagramProps) {
       setError(null)
       return
     }
+    mermaid.initialize({ ...MERMAID_OPTS, theme: mermaidTheme })
     const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`
     setError(null)
     const diagramOnly = normalizeMermaidCodeForRender(code)
@@ -49,7 +52,7 @@ export function MermaidDiagram({ code, className }: MermaidDiagramProps) {
         setSvg(null)
         setError(err.message ?? 'Erro ao renderizar diagrama')
       })
-  }, [code])
+  }, [code, mermaidTheme])
 
   if (error) {
     return (
@@ -61,7 +64,7 @@ export function MermaidDiagram({ code, className }: MermaidDiagramProps) {
       >
         <p className="font-medium mb-1">Diagrama inválido</p>
         <p className="text-xs text-amber-200/80">{error}</p>
-        <pre className="mt-2 p-2 rounded bg-zinc-900/80 text-xs overflow-auto max-h-40">
+        <pre className="mt-2 p-2 rounded bg-background/80 text-xs overflow-auto max-h-40">
           {code}
         </pre>
       </div>
@@ -72,7 +75,7 @@ export function MermaidDiagram({ code, className }: MermaidDiagramProps) {
     return (
       <div
         className={cn(
-          'rounded-lg border border-zinc-700 bg-zinc-900/40 flex items-center justify-center min-h-[120px] text-zinc-500 text-sm',
+          'rounded-lg border border-border bg-card/40 flex items-center justify-center min-h-[120px] text-muted-foreground text-sm',
           className
         )}
       >
@@ -83,7 +86,7 @@ export function MermaidDiagram({ code, className }: MermaidDiagramProps) {
 
   return (
     <div
-      className={cn('mermaid-diagram flex items-center justify-center overflow-auto rounded-lg bg-zinc-900/40 p-4', className)}
+      className={cn('mermaid-diagram flex items-center justify-center overflow-auto rounded-lg bg-card/40 p-4', className)}
       ref={containerRef}
       dangerouslySetInnerHTML={{ __html: svg }}
     />

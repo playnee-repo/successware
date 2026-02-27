@@ -3,6 +3,7 @@ import { DashboardPage } from '@/pages/dashboard/ui/DashboardPage'
 import { ProjectPage } from '@/pages/project/ui/ProjectPage'
 import { ResultadoPage } from '@/pages/resultado/ui/ResultadoPage'
 import { AdminPage } from '@/pages/admin/ui/AdminPage'
+import { DocumentosPage } from '@/pages/documentos/ui/DocumentosPage'
 
 export const router = createBrowserRouter([
   {
@@ -12,6 +13,10 @@ export const router = createBrowserRouter([
   {
     path: '/project/:projectId',
     element: <ProjectPage />,
+  },
+  {
+    path: '/project/:projectId/documentos',
+    element: <DocumentosPage />,
   },
   {
     path: '/project/:projectId/:disciplina',

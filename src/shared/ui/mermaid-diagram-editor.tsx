@@ -5,19 +5,19 @@ import { Button } from '@/shared/ui/button'
 import { BlockNoteField } from '@/shared/ui/blocknote-field'
 import { cn } from '@/shared/lib/utils'
 import { extractMermaidBlocks, normalizeMermaidCodeForRender } from '@/shared/lib/mermaid-utils'
+import { useTheme } from '@/shared/lib/theme-provider'
 
-mermaid.initialize({
+const MERMAID_OPTS = {
   startOnLoad: false,
-  theme: 'dark',
-  securityLevel: 'loose',
-  logLevel: 'error',
+  securityLevel: 'loose' as const,
+  logLevel: 'error' as const,
   flowchart: {
     useMaxWidth: false,
     padding: 24,
     nodeSpacing: 60,
     rankSpacing: 50,
   },
-})
+}
 
 const MIN_ZOOM = 0.25
 const MAX_ZOOM = 3
@@ -52,6 +52,8 @@ export function MermaidDiagramEditor({
 
   const diagramCode = extractMermaidBlocks(value ?? '')[0] ?? ''
   const normalizedCode = diagramCode ? normalizeMermaidCodeForRender(diagramCode) : ''
+  const { mode } = useTheme()
+  const mermaidTheme = mode === 'dark' ? 'dark' : 'default'
 
   useEffect(() => {
     if (!normalizedCode.trim()) {
@@ -59,6 +61,7 @@ export function MermaidDiagramEditor({
       setError(null)
       return
     }
+    mermaid.initialize({ ...MERMAID_OPTS, theme: mermaidTheme })
     const id = `mermaid-editor-${Math.random().toString(36).slice(2, 11)}`
     setError(null)
     mermaid
@@ -68,7 +71,7 @@ export function MermaidDiagramEditor({
         setSvg(null)
         setError(err.message ?? 'Erro ao renderizar diagrama')
       })
-  }, [normalizedCode])
+  }, [normalizedCode, mermaidTheme])
 
   const zoomIn = useCallback(() => {
     setScale((s) => Math.min(MAX_ZOOM, s + ZOOM_STEP))
@@ -120,23 +123,23 @@ export function MermaidDiagramEditor({
   }, [])
 
   return (
-    <div className={cn('mermaid-diagram-editor flex flex-col rounded-xl border border-zinc-700/60 bg-zinc-900/60 overflow-hidden', className)}>
+    <div className={cn('mermaid-diagram-editor flex flex-col rounded-xl border border-border bg-card/60 overflow-hidden', className)}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-zinc-700/60 bg-zinc-800/40 shrink-0">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-muted/40 shrink-0">
         <div className="flex items-center gap-1">
-          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-200" onClick={zoomIn} title="Aumentar zoom">
+          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={zoomIn} title="Aumentar zoom">
             <ZoomIn className="w-4 h-4" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-200" onClick={zoomOut} title="Diminuir zoom">
+          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={zoomOut} title="Diminuir zoom">
             <ZoomOut className="w-4 h-4" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-200" onClick={resetZoom} title="Redefinir zoom (100%)">
+          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={resetZoom} title="Redefinir zoom (100%)">
             <RotateCcw className="w-4 h-4" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-200" onClick={fitToView} title="Ajustar à área">
+          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={fitToView} title="Ajustar à área">
             <Maximize2 className="w-4 h-4" />
           </Button>
-          <span className="ml-2 text-xs text-zinc-500 tabular-nums">{Math.round(scale * 100)}%</span>
+          <span className="ml-2 text-xs text-muted-foreground tabular-nums">{Math.round(scale * 100)}%</span>
         </div>
         <Button
           type="button"
@@ -153,14 +156,14 @@ export function MermaidDiagramEditor({
 
       {/* Área principal: diagrama com zoom/pan ou editor */}
       {isEditing ? (
-        <div className="flex-1 min-h-[280px] p-4 border-t border-zinc-700/40">
-          <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Código do diagrama e texto (Markdown)</p>
+        <div className="flex-1 min-h-[280px] p-4 border-t border-border">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Código do diagrama e texto (Markdown)</p>
           <BlockNoteField value={value ?? ''} onChange={onChange} className="min-h-[240px]" />
         </div>
       ) : (
         <div
           ref={viewportRef}
-          className="relative overflow-hidden bg-zinc-900/50 flex items-center justify-center"
+          className="relative overflow-hidden bg-card/50 flex items-center justify-center"
           style={{ minHeight: diagramHeight, cursor: isPanning ? 'grabbing' : 'grab' }}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
@@ -180,7 +183,7 @@ export function MermaidDiagramEditor({
             </div>
           )}
           {!error && !svg && normalizedCode && (
-            <div className="text-zinc-500 text-sm">Carregando diagrama…</div>
+            <div className="text-muted-foreground text-sm">Carregando diagrama…</div>
           )}
           {!error && svg && (
             <div
@@ -193,7 +196,7 @@ export function MermaidDiagramEditor({
             />
           )}
           {!error && !svg && !normalizedCode && (
-            <div className="text-zinc-500 text-sm">Nenhum diagrama. Clique em &quot;Editar&quot; para adicionar código Mermaid.</div>
+            <div className="text-muted-foreground text-sm">Nenhum diagrama. Clique em &quot;Editar&quot; para adicionar código Mermaid.</div>
           )}
         </div>
       )}

@@ -14,6 +14,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter
 } from '@/shared/ui/dialog'
+import { ThemeToggle } from '@/shared/ui/theme-toggle'
+import { ThemeSelector } from '@/shared/ui/theme-selector'
 import { cn, formatDate } from '@/shared/lib/utils'
 import type { Project, ProjectStatus } from '@/entities/project/model/types'
 
@@ -71,9 +73,9 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <div
       className={cn(
-        'group relative bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden cursor-pointer',
-        'card-hover ring-1 ring-inset ring-white/5',
-        'hover:border-zinc-700 hover:shadow-xl hover:shadow-black/30'
+        'group relative bg-card border border-border rounded-xl overflow-hidden cursor-pointer',
+        'card-hover ring-1 ring-inset ring-white/5 dark:ring-white/5',
+        'hover:border-border/80 hover:shadow-xl hover:shadow-black/20 dark:hover:shadow-black/30'
       )}
       onClick={() => navigate(`/project/${project.id}/requisitos`)}
     >
@@ -86,19 +88,19 @@ function ProjectCard({ project }: { project: Project }) {
           <div className="flex items-center gap-3">
             <div className={cn(
               'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200',
-              'bg-indigo-500/10 border border-indigo-500/20 ring-inset-subtle',
-              'group-hover:bg-indigo-500/20 group-hover:border-indigo-500/30'
+              'bg-primary/10 border border-primary/20 ring-inset-subtle',
+              'group-hover:bg-primary/20 group-hover:border-primary/30'
             )}>
-              <FolderOpen className="w-4.5 h-4.5 text-indigo-400" />
+              <FolderOpen className="w-4.5 h-4.5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-zinc-100 leading-tight truncate">
+              <h3 className="text-sm font-bold text-foreground leading-tight truncate">
                 {project.nome}
               </h3>
               {project.empresa && (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Building2 className="w-3 h-3 text-zinc-600" />
-                  <span className="text-[11px] text-zinc-500 truncate">{project.empresa}</span>
+                  <Building2 className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-[11px] text-muted-foreground truncate">{project.empresa}</span>
                 </div>
               )}
             </div>
@@ -113,20 +115,20 @@ function ProjectCard({ project }: { project: Project }) {
 
         {/* Description */}
         {project.descricao && (
-          <p className="text-[11px] text-zinc-500 leading-snug line-clamp-2 mb-4">
+          <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 mb-4">
             {project.descricao}
           </p>
         )}
 
         {/* Footer row */}
-        <div className="flex items-center justify-between pt-3 border-t border-zinc-800/60">
-          <div className="flex items-center gap-1.5 text-[10px] text-zinc-600">
+        <div className="flex items-center justify-between pt-3 border-t border-border/60">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <Calendar className="w-3 h-3" />
             <span>{formatDate(project.criado_em)}</span>
           </div>
 
           <div className={cn(
-            'flex items-center gap-1 text-[11px] font-medium text-indigo-400',
+            'flex items-center gap-1 text-[11px] font-medium text-primary',
             'opacity-0 group-hover:opacity-100 transition-all duration-200',
             'translate-x-1 group-hover:translate-x-0'
           )}>
@@ -166,52 +168,54 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-background">
       {/* Top Navigation Bar */}
-      <header className="border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-sm sticky top-0 z-20">
+      <header className="border-b border-border bg-background/90 backdrop-blur-sm sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center glow-primary ring-inset-subtle">
               <Zap className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white tracking-tight">SDLC Copilot</h1>
-              <p className="text-[10px] text-zinc-500">Plataforma de Engenharia Assistida por IA</p>
+              <h1 className="text-sm font-bold text-foreground tracking-tight">SDLC Copilot</h1>
+              <p className="text-[10px] text-muted-foreground">Plataforma de Engenharia Assistida por IA</p>
             </div>
           </div>
 
-          <Button
-            onClick={() => setShowNew(true)}
-            className="h-8 px-3 text-xs gap-1.5 gradient-primary border-0 text-white hover:opacity-90 shadow-lg shadow-indigo-500/20 font-medium"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Novo Projeto
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeSelector />
+            <ThemeToggle />
+            <Button
+              onClick={() => setShowNew(true)}
+              className="h-8 px-3 text-xs gap-1.5 gradient-primary border-0 text-white hover:opacity-90 shadow-lg shadow-primary/20 font-medium"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Novo Projeto
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* Hero section */}
-      <div className="relative overflow-hidden bg-zinc-950 border-b border-zinc-800/40">
+      <div className="relative overflow-hidden bg-background border-b border-border">
         {/* Grid pattern background */}
         <div className="absolute inset-0 bg-grid-pattern opacity-100" />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         {/* Radial glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-indigo-600/10 blur-3xl rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-primary/10 blur-3xl rounded-full" />
 
         <div className="relative max-w-6xl mx-auto px-6 py-12">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-xs font-semibold text-primary uppercase tracking-widest">
               Bem-vindo ao
             </span>
           </div>
-          <h2 className="text-3xl font-black tracking-tight mb-2">
-            <span className="bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-              SDLC Copilot
-            </span>
+          <h2 className="text-3xl font-black tracking-tight mb-2 text-foreground">
+            SDLC Copilot
           </h2>
-          <p className="text-sm text-zinc-500 max-w-md leading-relaxed">
+          <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
             Gerencie todo o ciclo de desenvolvimento de software com agentes de IA especializados — da descoberta à qualidade.
           </p>
         </div>
@@ -226,18 +230,18 @@ export function DashboardPage() {
               label: 'Projetos Ativos',
               value: activeProjects,
               icon: Activity,
-              color: 'text-indigo-400',
-              iconBg: 'bg-indigo-500/10 border-indigo-500/20',
-              cardBorder: 'border-zinc-800',
+              color: 'text-primary',
+              iconBg: 'bg-primary/10 border-primary/20',
+              cardBorder: 'border-border',
               accentBar: 'card-accent-indigo',
             },
             {
               label: 'Total de Projetos',
               value: totalProjects,
               icon: FolderOpen,
-              color: 'text-zinc-400',
-              iconBg: 'bg-zinc-800 border-zinc-700',
-              cardBorder: 'border-zinc-800',
+              color: 'text-muted-foreground',
+              iconBg: 'bg-muted border-border',
+              cardBorder: 'border-border',
               accentBar: '',
             },
             {
@@ -253,9 +257,8 @@ export function DashboardPage() {
             <div
               key={stat.label}
               className={cn(
-                'bg-zinc-900 border rounded-xl p-5 flex items-center gap-4',
-                'ring-1 ring-inset ring-white/5 overflow-hidden',
-                stat.cardBorder,
+                'bg-card border border-border rounded-xl p-5 flex items-center gap-4',
+                'ring-1 ring-inset ring-white/5 dark:ring-white/5 overflow-hidden',
                 stat.accentBar
               )}
             >
@@ -266,8 +269,8 @@ export function DashboardPage() {
                 <stat.icon className={cn('w-5 h-5', stat.color)} />
               </div>
               <div className="min-w-0">
-                <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5 font-medium">{stat.label}</p>
+                <p className="text-2xl font-black text-foreground leading-none">{stat.value}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 font-medium">{stat.label}</p>
               </div>
             </div>
           ))}
@@ -277,15 +280,15 @@ export function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-base font-bold text-zinc-100">Projetos</h2>
-              <p className="text-[11px] text-zinc-600 mt-0.5">{projects.length} projeto(s) no total</p>
+              <h2 className="text-base font-bold text-foreground">Projetos</h2>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{projects.length} projeto(s) no total</p>
             </div>
             {projects.length > 0 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowNew(true)}
-                className="h-7 px-2.5 text-[11px] gap-1.5 border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300"
+                className="h-7 px-2.5 text-[11px] gap-1.5 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <Plus className="w-3 h-3" />
                 Criar
@@ -296,31 +299,31 @@ export function DashboardPage() {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map(i => (
-                <div
-                  key={i}
-                  className="h-40 rounded-xl bg-zinc-900 border border-zinc-800 animate-pulse"
-                />
+            <div
+              key={i}
+              className="h-40 rounded-xl bg-card border border-border animate-pulse"
+            />
               ))}
             </div>
           ) : projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 gap-5">
               <div className="relative">
-                <div className="w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center ring-inset-subtle">
-                  <FolderOpen className="w-9 h-9 text-zinc-700" />
+                <div className="w-20 h-20 rounded-2xl bg-card border border-border flex items-center justify-center ring-inset-subtle">
+                  <FolderOpen className="w-9 h-9 text-muted-foreground" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg gradient-primary flex items-center justify-center ring-inset-subtle">
                   <Plus className="w-4 h-4 text-white" />
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-sm font-bold text-zinc-300">Nenhum projeto ainda</p>
-                <p className="text-xs text-zinc-600 mt-1.5 max-w-xs leading-relaxed">
+                <p className="text-sm font-bold text-foreground">Nenhum projeto ainda</p>
+                <p className="text-xs text-muted-foreground mt-1.5 max-w-xs leading-relaxed">
                   Crie seu primeiro projeto para começar a usar os agentes de IA do SDLC Copilot.
                 </p>
               </div>
               <Button
                 onClick={() => setShowNew(true)}
-                className="h-9 px-4 text-sm gap-2 gradient-primary border-0 text-white hover:opacity-90 shadow-lg shadow-indigo-500/20 font-medium"
+                className="h-9 px-4 text-sm gap-2 gradient-primary border-0 text-white hover:opacity-90 shadow-lg shadow-primary/20 font-medium"
               >
                 <Plus className="w-4 h-4" />
                 Criar Primeiro Projeto
@@ -338,45 +341,45 @@ export function DashboardPage() {
 
       {/* Create Project Dialog */}
       <Dialog open={showNew} onOpenChange={setShowNew}>
-        <DialogContent className="max-w-md bg-zinc-900 border-zinc-800">
+        <DialogContent className="max-w-md bg-card border-border">
           <DialogHeader>
             <div className="flex items-center gap-2.5 mb-1">
               <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center ring-inset-subtle">
                 <Zap className="w-4 h-4 text-white" />
               </div>
-              <DialogTitle className="text-zinc-100 text-base font-bold">Novo Projeto</DialogTitle>
+              <DialogTitle className="text-foreground text-base font-bold">Novo Projeto</DialogTitle>
             </div>
-            <DialogDescription className="text-zinc-500 text-xs leading-relaxed">
+            <DialogDescription className="text-muted-foreground text-xs leading-relaxed">
               Configure seu projeto para começar a trabalhar com os agentes de IA.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 pt-2">
             <div>
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
                 Nome do Projeto *
               </label>
               <Input
                 value={nome}
                 onChange={e => setNome(e.target.value)}
                 placeholder="Ex: E-commerce Platform"
-                className="bg-zinc-800 border-zinc-700 text-zinc-200 placeholder:text-zinc-600 focus-visible:ring-indigo-500"
+                className="bg-muted border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 onKeyDown={e => e.key === 'Enter' && handleCreate()}
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
                 Empresa / Cliente
               </label>
               <Input
                 value={empresa}
                 onChange={e => setEmpresa(e.target.value)}
                 placeholder="Ex: Acme Corp"
-                className="bg-zinc-800 border-zinc-700 text-zinc-200 placeholder:text-zinc-600 focus-visible:ring-indigo-500"
+                className="bg-muted border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
                 Descrição
               </label>
               <BlockNoteField
@@ -384,7 +387,7 @@ export function DashboardPage() {
                 onChange={setDescricao}
                 placeholder="Descreva o objetivo principal do projeto"
                 minHeight="100px"
-                className="border-zinc-700"
+                className="border-border"
               />
             </div>
           </div>
@@ -394,7 +397,7 @@ export function DashboardPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowNew(false)}
-              className="border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300"
+              className="border-border text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               Cancelar
             </Button>
@@ -402,7 +405,7 @@ export function DashboardPage() {
               size="sm"
               onClick={handleCreate}
               disabled={!nome.trim() || createProject.isPending}
-              className="gradient-primary border-0 text-white hover:opacity-90 shadow-md shadow-indigo-500/20 font-medium"
+              className="gradient-primary border-0 text-white hover:opacity-90 shadow-md shadow-primary/20 font-medium"
             >
               {createProject.isPending
                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

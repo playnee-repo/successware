@@ -17,6 +17,7 @@ import {
   useCreateAtividade,
   useUpdateAtividade,
   useDeleteAtividade,
+  useRenameDisciplina,
 } from '@/features/manage-admin/model/useAdminAtividades'
 import {
   useAllDefinicoesComAtividade,
@@ -29,6 +30,7 @@ import {
   useAllAgentes,
   useCreateAgente,
   useUpdateAgente,
+  useRenameAgente,
 } from '@/features/manage-admin/model/useAdminAgentes'
 import type { AgenteConfig } from '@/entities/admin/model/types'
 import type { Database } from '@/shared/api/supabase'
@@ -412,6 +414,74 @@ function NovaDisciplinaDialog({
   )
 }
 
+// ─── Editar Disciplina Dialog ─────────────────────────────────────────────────
+
+function EditDisciplinaDialog({
+  open,
+  disciplina,
+  onClose,
+}: {
+  open: boolean
+  disciplina: string | null
+  onClose: () => void
+}) {
+  const [newName, setNewName] = useState('')
+  const renameMut = useRenameDisciplina()
+
+  useEffect(() => {
+    if (open) setNewName(disciplina ?? '')
+  }, [open, disciplina])
+
+  const normalised = newName.trim().toLowerCase().replace(/\s+/g, '_')
+  const isValid = normalised.length > 0 && normalised !== disciplina
+
+  async function handle() {
+    if (!isValid || !disciplina) return
+    try {
+      await renameMut.mutateAsync({ oldName: disciplina, newName: normalised })
+      toast('Disciplina renomeada')
+      onClose()
+    } catch (e) {
+      toast(`Erro: ${(e as Error).message}`, 'err')
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-sm ring-inset-subtle">
+        <DialogHeader>
+          <DialogTitle>Renomear disciplina</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div>
+            <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Novo ID *</label>
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="bg-zinc-800 border-zinc-700 text-zinc-100"
+              placeholder="Ex: design, ux_research, devops…"
+              onKeyDown={(e) => { if (e.key === 'Enter') handle() }}
+            />
+            <p className="text-[11px] text-zinc-500 mt-1.5">
+              Todas as atividades de <strong className="text-zinc-400">"{disciplina}"</strong> serão renomeadas para o novo ID.
+            </p>
+          </div>
+        </div>
+        <DialogFooter className="pt-2">
+          <Button variant="ghost" onClick={onClose} className="text-zinc-400">Cancelar</Button>
+          <Button
+            onClick={handle}
+            disabled={!isValid || renameMut.isPending}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white"
+          >
+            {renameMut.isPending ? 'Salvando…' : 'Renomear'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ─── Nova Definição de Insumo Dialog (criar definição vinculada a uma atividade) ─
 
 function NovaDefinicaoInsumoDialog({
@@ -519,6 +589,7 @@ function SecaoAtividades({
   const [editTarget, setEditTarget] = useState<(AtividadeFormData & { id?: string }) | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AtividadeRow | null>(null)
   const [novaDisciplinaOpen, setNovaDisciplinaOpen] = useState(false)
+  const [editDisciplina, setEditDisciplina] = useState<string | null>(null)
 
   const allDiscs = [
     ...DISCIPLINAS,
@@ -573,14 +644,23 @@ function SecaoAtividades({
                   {grouped[disc].length} atividade{grouped[disc].length !== 1 ? 's' : ''}
                 </span>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className={cn('h-7 text-xs px-2.5 rounded-md hover:bg-zinc-800/60', colors.text)}
-                onClick={() => setEditTarget({ ...EMPTY_ATIVIDADE, disciplina: disc, ordem: (grouped[disc].length + 1) })}
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar atividade
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setEditDisciplina(disc)}
+                  className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/60 transition-colors"
+                  title="Renomear disciplina"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className={cn('h-7 text-xs px-2.5 rounded-md hover:bg-zinc-800/60', colors.text)}
+                  onClick={() => setEditTarget({ ...EMPTY_ATIVIDADE, disciplina: disc, ordem: (grouped[disc].length + 1) })}
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar atividade
+                </Button>
+              </div>
             </div>
 
             {/* Activity rows */}
@@ -673,6 +753,12 @@ function SecaoAtividades({
         onClose={() => setNovaDisciplinaOpen(false)}
         agentes={agentes}
         onCreated={() => {}}
+      />
+
+      <EditDisciplinaDialog
+        open={editDisciplina !== null}
+        disciplina={editDisciplina}
+        onClose={() => setEditDisciplina(null)}
       />
 
     </div>
@@ -1184,13 +1270,16 @@ function TemperaturaBar({ value }: { value: number }) {
 function AgenteForm({
   agente,
   onSaved,
+  onRenamed,
 }: {
   agente: AgenteConfig
   onSaved: () => void
+  onRenamed?: (newId: string) => void
 }) {
   const updateMut = useUpdateAgente()
   const [draft, setDraft] = useState<AgenteDraft>({ ...agente })
   const [saving, setSaving] = useState(false)
+  const [renameOpen, setRenameOpen] = useState(false)
 
   useEffect(() => { setDraft({ ...agente }) }, [agente.id])
 
@@ -1226,7 +1315,20 @@ function AgenteForm({
     <div className="flex flex-col gap-6 overflow-y-auto h-full pb-6">
       {/* Card: Identity */}
       <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 sm:p-7 space-y-5 ring-inset-subtle">
-        <p className="text-[10px] uppercase tracking-widest font-semibold text-zinc-500 mb-1">Identidade</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] uppercase tracking-widest font-semibold text-zinc-500">Identidade</p>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-zinc-500">ID:</span>
+            <span className="text-[11px] font-mono font-bold text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">{agente.id}</span>
+            <button
+              onClick={() => setRenameOpen(true)}
+              className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/60 transition-colors"
+              title="Renomear ID do agente"
+            >
+              <Pencil className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-5">
           <div>
             <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Nome</label>
@@ -1379,6 +1481,13 @@ function AgenteForm({
           </Button>
         </div>
       )}
+
+      <RenameAgenteDialog
+        open={renameOpen}
+        currentId={agente.id}
+        onClose={() => setRenameOpen(false)}
+        onRenamed={(newId) => { onRenamed?.(newId) }}
+      />
     </div>
   )
 }
@@ -1488,6 +1597,87 @@ function AgentePlayground({ agente }: { agente: AgenteConfig }) {
         </div>
       )}
     </div>
+  )
+}
+
+function RenameAgenteDialog({
+  open,
+  currentId,
+  onClose,
+  onRenamed,
+}: {
+  open: boolean
+  currentId: string | null
+  onClose: () => void
+  onRenamed: (newId: string) => void
+}) {
+  const [newId, setNewId] = useState('')
+  const renameMut = useRenameAgente()
+
+  useEffect(() => {
+    if (open) setNewId(currentId ?? '')
+  }, [open, currentId])
+
+  const normalised = newId.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '')
+  const isValid = normalised.length > 0 && normalised !== currentId
+  const previewColors = normalised ? getAgenteColor(normalised) : null
+
+  async function handle() {
+    if (!isValid || !currentId) return
+    try {
+      await renameMut.mutateAsync({ oldId: currentId, newId: normalised })
+      toast('Agente renomeado')
+      onRenamed(normalised)
+      onClose()
+    } catch (e) {
+      toast(`Erro: ${(e as Error).message}`, 'err')
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-sm ring-inset-subtle">
+        <DialogHeader>
+          <div className="flex items-center gap-3 mb-1">
+            {previewColors ? (
+              <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-xs font-mono font-bold', previewColors.bg, previewColors.text)}>
+                {previewColors.abbr}
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-zinc-500" />
+              </div>
+            )}
+            <DialogTitle>Renomear agente</DialogTitle>
+          </div>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div>
+            <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Novo ID *</label>
+            <Input
+              value={newId}
+              onChange={(e) => setNewId(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
+              className="bg-zinc-800 border-zinc-700 text-zinc-100 font-mono"
+              placeholder="NOVO_ID"
+              onKeyDown={(e) => { if (e.key === 'Enter') handle() }}
+            />
+            <p className="text-[11px] text-zinc-500 mt-1.5">
+              Atividades e definições de insumos referenciando <strong className="text-zinc-400">"{currentId}"</strong> serão atualizadas automaticamente.
+            </p>
+          </div>
+        </div>
+        <DialogFooter className="pt-2">
+          <Button variant="ghost" onClick={onClose} className="text-zinc-400">Cancelar</Button>
+          <Button
+            onClick={handle}
+            disabled={!isValid || renameMut.isPending}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white"
+          >
+            {renameMut.isPending ? 'Salvando…' : 'Renomear'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -1655,7 +1845,7 @@ function SecaoAgentes() {
             </div>
 
             <div className="flex-1 overflow-y-auto min-h-0">
-              {tab === 'config' && <AgenteForm key={selectedAgente.id} agente={selectedAgente} onSaved={() => {}} />}
+              {tab === 'config' && <AgenteForm key={selectedAgente.id} agente={selectedAgente} onSaved={() => {}} onRenamed={(newId) => setSelected(newId)} />}
               {tab === 'playground' && <AgentePlayground agente={selectedAgente} />}
             </div>
           </>

@@ -118,6 +118,24 @@ export type Database = {
         }
         Update: Partial<Database['public']['Tables']['mensagens_agente']['Insert']>
       }
+      documentos_projeto: {
+        Row: {
+          id: string
+          projeto_id: string
+          titulo: string
+          conteudo_md: string
+          ordem: number
+          ativo: boolean
+          criado_em: string
+          atualizado_em: string
+        }
+        Insert: Omit<Database['public']['Tables']['documentos_projeto']['Row'], 'id' | 'criado_em' | 'atualizado_em'> & {
+          id?: string
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Update: Partial<Database['public']['Tables']['documentos_projeto']['Insert']>
+      }
       agentes_config: {
         Row: {
           id: string

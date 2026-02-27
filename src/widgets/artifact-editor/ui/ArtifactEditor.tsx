@@ -16,7 +16,7 @@ interface ArtifactEditorProps {
 }
 
 const STATUS_CONFIG: Record<ApprovalStatus, { label: string; className: string }> = {
-  rascunho: { label: 'Rascunho', className: 'bg-zinc-700/60 text-zinc-400 border-zinc-600/40' },
+  rascunho: { label: 'Rascunho', className: 'bg-muted text-muted-foreground border-border/60' },
   em_revisao: { label: 'Em Revisão', className: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
   aprovado: { label: 'Aprovado', className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
   rejeitado: { label: 'Rejeitado', className: 'bg-red-500/15 text-red-400 border-red-500/25' },
@@ -41,12 +41,12 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
     : null
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden ring-1 ring-inset ring-white/5">
+    <div className="flex flex-col h-full bg-card rounded-lg border border-border overflow-hidden ring-1 ring-inset ring-black/5">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-800/80 shrink-0 bg-zinc-900/80">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/80 shrink-0 bg-card/80">
         <div className="flex items-center gap-2">
           {/* Version pill */}
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-500 border border-zinc-700/60">
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/60">
             v{insumo.versao}
           </span>
 
@@ -59,7 +59,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
           </Badge>
 
           {/* Timestamp */}
-          <span className="text-[9px] text-zinc-700 hidden sm:inline">
+          <span className="text-[9px] text-muted-foreground/50 hidden sm:inline">
             {formatDateTime(insumo.criado_em)}
           </span>
         </div>
@@ -87,7 +87,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
               variant="outline"
               onClick={() => handleStatusUpdate('em_revisao')}
               disabled={updateStatus.isPending}
-              className="h-6 px-2 text-[10px] gap-1 border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300"
+              className="h-6 px-2 text-[10px] gap-1 border-border text-muted-foreground hover:bg-accent hover:text-foreground"
             >
               <RotateCcw className="w-2.5 h-2.5" />
               Revisar
@@ -110,7 +110,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
           {onClose && (
             <button
               onClick={onClose}
-              className="w-6 h-6 flex items-center justify-center rounded-md text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-all ml-0.5"
+              className="w-6 h-6 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent transition-all ml-0.5"
             >
               <X className="w-3 h-3" />
             </button>
@@ -121,13 +121,13 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
       {/* Content with pill tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
         <div className="px-3 pt-2 shrink-0">
-          <TabsList className="h-7 p-0.5 bg-zinc-800/60 border border-zinc-700/40 rounded-lg w-auto inline-flex">
+          <TabsList className="h-7 p-0.5 bg-muted/60 border border-border/40 rounded-lg w-auto inline-flex">
             <TabsTrigger
               value="visual"
               className={cn(
                 'h-6 text-[10px] gap-1 px-2.5 rounded-md font-medium',
-                'data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-100',
-                'data-[state=inactive]:text-zinc-600'
+                'data-[state=active]:bg-accent data-[state=active]:text-foreground',
+                'data-[state=inactive]:text-muted-foreground'
               )}
             >
               <Eye className="w-3 h-3" />
@@ -137,8 +137,8 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
               value="rawjson"
               className={cn(
                 'h-6 text-[10px] gap-1 px-2.5 rounded-md font-medium',
-                'data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-100',
-                'data-[state=inactive]:text-zinc-600'
+                'data-[state=active]:bg-accent data-[state=active]:text-foreground',
+                'data-[state=inactive]:text-muted-foreground'
               )}
             >
               <Code2 className="w-3 h-3" />
@@ -150,31 +150,31 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
         <TabsContent value="visual" className="flex-1 overflow-hidden mt-0 p-3">
           <ScrollArea className="h-full">
             {markdownText ? (
-              <div className="chat-markdown text-xs text-zinc-300 leading-relaxed">
+              <div className="chat-markdown text-xs text-foreground leading-relaxed">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
                     p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                    strong: ({ children }) => <strong className="font-semibold text-zinc-100">{children}</strong>,
+                    strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
                     ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-0.5 pl-0">{children}</ul>,
                     ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-0.5 pl-0">{children}</ol>,
                     li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                    h1: ({ children }) => <h1 className="text-base font-bold text-zinc-100 mt-4 mb-2 first:mt-0">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-sm font-semibold text-zinc-100 mt-3 mb-1.5 first:mt-0">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-xs font-medium text-zinc-200 mt-2 mb-1 first:mt-0">{children}</h3>,
-                    code: ({ children }) => <code className="bg-zinc-700/80 px-1 py-0.5 rounded text-[11px] font-mono">{children}</code>,
-                    pre: ({ children }) => <pre className="bg-zinc-800/80 p-2 rounded-lg overflow-x-auto text-[11px] my-2 font-mono">{children}</pre>,
+                    h1: ({ children }) => <h1 className="text-base font-bold text-foreground mt-4 mb-2 first:mt-0">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-sm font-semibold text-foreground mt-3 mb-1.5 first:mt-0">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-xs font-medium text-foreground mt-2 mb-1 first:mt-0">{children}</h3>,
+                    code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-[11px] font-mono">{children}</code>,
+                    pre: ({ children }) => <pre className="bg-muted p-2 rounded-lg overflow-x-auto text-[11px] my-2 font-mono">{children}</pre>,
                     table: ({ children }) => <table className="w-full text-xs border-collapse my-2">{children}</table>,
-                    th: ({ children }) => <th className="border border-zinc-700 px-2 py-1 text-left text-zinc-300 bg-zinc-800/60">{children}</th>,
-                    td: ({ children }) => <td className="border border-zinc-700 px-2 py-1 text-zinc-400">{children}</td>,
-                    blockquote: ({ children }) => <blockquote className="border-l-2 border-indigo-500/50 pl-3 italic text-zinc-500 my-2">{children}</blockquote>,
+                    th: ({ children }) => <th className="border border-border px-2 py-1 text-left text-foreground bg-muted/60">{children}</th>,
+                    td: ({ children }) => <td className="border border-border px-2 py-1 text-muted-foreground">{children}</td>,
+                    blockquote: ({ children }) => <blockquote className="border-l-2 border-primary/50 pl-3 italic text-muted-foreground my-2">{children}</blockquote>,
                   }}
                 >
                   {markdownText}
                 </ReactMarkdown>
               </div>
             ) : (
-              <pre className="text-[10px] text-zinc-500 font-mono leading-relaxed bg-zinc-800/40 border border-zinc-700/40 rounded-lg p-4 overflow-auto">
+              <pre className="text-[10px] text-muted-foreground font-mono leading-relaxed bg-muted/40 border border-border/40 rounded-lg p-4 overflow-auto">
                 {JSON.stringify(insumo.conteudo_json, null, 2)}
               </pre>
             )}
@@ -183,7 +183,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
 
         <TabsContent value="rawjson" className="flex-1 overflow-hidden mt-0 p-3">
           <ScrollArea className="h-full">
-            <pre className="text-[10px] text-zinc-500 font-mono leading-relaxed bg-zinc-800/40 border border-zinc-700/40 rounded-lg p-4 overflow-auto whitespace-pre-wrap">
+            <pre className="text-[10px] text-muted-foreground font-mono leading-relaxed bg-muted/40 border border-border/40 rounded-lg p-4 overflow-auto whitespace-pre-wrap">
               {markdownText ?? JSON.stringify(insumo.conteudo_json, null, 2)}
             </pre>
           </ScrollArea>

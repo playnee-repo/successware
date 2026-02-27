@@ -4,6 +4,7 @@ import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
 import { cn } from '@/shared/lib/utils'
+import { useTheme } from '@/shared/lib/theme-provider'
 
 export interface BlockNoteFieldProps {
   value: string
@@ -86,18 +87,21 @@ export function BlockNoteField({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useEditorChange(handleChange as any, editor)
 
+  const { mode } = useTheme()
+  const blockNoteTheme = mode === 'dark' ? 'dark' : 'light'
+
   if (!editor) return null
 
   return (
     <div
       className={cn(
-        'bn-blocknote-field overflow-hidden rounded-xl border border-zinc-700/70 bg-zinc-900/50 transition-[border-color,box-shadow] focus-within:border-zinc-600 focus-within:ring-2 focus-within:ring-indigo-500/20 [&_.bn-editor]:min-h-[var(--bn-min-h)]',
+        'bn-blocknote-field overflow-hidden rounded-xl border border-border bg-card/50 transition-[border-color,box-shadow] focus-within:border-ring/60 focus-within:ring-2 focus-within:ring-ring/20 [&_.bn-editor]:min-h-[var(--bn-min-h)]',
         variant === 'compact' && 'bn-blocknote-field--compact',
         className
       )}
       style={{ minHeight: effectiveMinHeight, ['--bn-min-h' as string]: effectiveMinHeight }}
     >
-      <BlockNoteView editor={editor} theme="dark" editable={editable} />
+      <BlockNoteView editor={editor} theme={blockNoteTheme} editable={editable} />
     </div>
   )
 }

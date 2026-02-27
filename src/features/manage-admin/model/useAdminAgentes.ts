@@ -77,3 +77,39 @@ export function useDeleteAgente() {
     onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
   })
 }
+
+export function useRenameAgente() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ oldId, newId }: { oldId: string; newId: string }) => {
+      // 1. Fetch current config
+      const { data: agente, error: fetchErr } = await supabase
+        .from('agentes_config')
+        .select('*')
+        .eq('id', oldId)
+        .single()
+      if (fetchErr) throw fetchErr
+
+      // 2. Insert with new ID (omit atualizado_em, let DB handle)
+      const { atualizado_em, ...rest } = agente as AgenteConfig & { atualizado_em: string | null }
+      void atualizado_em
+      const { error: insertErr } = await supabase
+        .from('agentes_config')
+        .insert({ ...rest, id: newId })
+      if (insertErr) throw insertErr
+
+      // 3. Update references in related tables
+      await supabase.from('atividades').update({ agente: newId }).eq('agente', oldId)
+      await supabase.from('definicoes_insumos').update({ agente_responsavel: newId }).eq('agente_responsavel', oldId)
+
+      // 4. Delete old row
+      const { error: delErr } = await supabase.from('agentes_config').delete().eq('id', oldId)
+      if (delErr) throw delErr
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK })
+      qc.invalidateQueries({ queryKey: ['admin', 'atividades'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'definicoes'] })
+    },
+  })
+}

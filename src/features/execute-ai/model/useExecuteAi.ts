@@ -37,9 +37,20 @@ async function executeAiCall(params: ExecuteAiParams): Promise<ExecuteAiResult> 
     : 0
   const newVersion = currentVersion + 1
 
-  // 2. Montar contexto de insumos aprovados
+  // 2. Buscar documentos de contexto do projeto
+  const { data: documentos } = await supabase
+    .from('documentos_projeto')
+    .select('titulo, conteudo_md')
+    .eq('projeto_id', projeto.id)
+    .eq('ativo', true)
+    .order('ordem')
+  const contextDocumentos = documentos && documentos.length > 0
+    ? `\n\n## Documentos do Projeto (contexto obrigatório)\n\n${documentos.map(d => `### ${d.titulo}\n\n${d.conteudo_md}`).join('\n\n---\n\n')}`
+    : ''
+
+  // 2b. Montar contexto de insumos aprovados
   const contextAprovados = insumosAprovados.length > 0
-    ? `\nContexto de insumos já aprovados:\n${insumosAprovados.map(i => {
+    ? `\n\n## Insumos já aprovados nesta iteração\n\n${insumosAprovados.map(i => {
         const c = i.conteudo_json as Record<string, unknown>
         return typeof c?.md === 'string' ? c.md : JSON.stringify(c)
       }).join('\n\n')}`
@@ -49,12 +60,14 @@ async function executeAiCall(params: ExecuteAiParams): Promise<ExecuteAiResult> 
   const agentId = definicao.agente_responsavel || 'SCRIBE'
   const template = definicao.prompt_template || `Você é ${agentId}, especialista em ${atividade.nome}.
 Projeto: {{projeto_nome}} | Módulo: {{iteracao_modulo}}
-${contextAprovados}
+{{documentos}}
+{{contexto}}
 Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
 
   const prompt = buildPrompt(template, {
     projeto_nome: projeto.nome,
     iteracao_modulo: iteracao.modulo_foco || iteracao.nome,
+    documentos: contextDocumentos,
     contexto: contextAprovados,
   })
 

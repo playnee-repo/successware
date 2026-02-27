@@ -5,7 +5,10 @@
       "Bash(cd /c/Users/micha/Documents/git/prd-v2 && npx supabase migration up 2>&1)",
       "Bash(cd /c/Users/micha/Documents/git/prd-v2 && npx supabase db reset 2>&1)",
       "Bash(cd:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(cd C:\\\\Users\\\\micha\\\\Documents\\\\git\\\\prd-v2:*)",
+      "Bash(cd \"C:\\\\Users\\\\micha\\\\Documents\\\\git\\\\prd-v2\" && npx tsc --noEmit 2>&1)",
+      "Bash(supabase db:*)"
     ]
   }
 }

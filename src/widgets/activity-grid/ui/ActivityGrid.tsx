@@ -82,19 +82,19 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
       ? 'text-emerald-400'
       : atividade.progresso >= 50
       ? 'text-amber-400'
-      : 'text-zinc-500'
+      : 'text-muted-foreground'
 
   const progressBarColor =
     atividade.progresso === 100
       ? 'bg-emerald-500'
       : atividade.progresso >= 50
       ? 'bg-amber-500'
-      : 'bg-indigo-500'
+      : 'bg-primary'
 
   return (
     <div className={cn(
-      'bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden card-hover',
-      'ring-1 ring-inset ring-white/5',
+      'bg-card border border-border rounded-lg overflow-hidden card-hover',
+      'ring-1 ring-inset ring-black/5',
       accentClass,
       atividade.progresso === 100 && 'border-l-emerald-500'
     )}>
@@ -111,7 +111,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-semibold text-zinc-100 leading-tight">
+                <h3 className="text-sm font-semibold text-foreground leading-tight">
                   {atividade.nome}
                 </h3>
                 <span className={cn(
@@ -127,7 +127,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
                 )}
               </div>
               {atividade.descricao && (
-                <p className="text-[11px] text-zinc-500 mt-1 leading-snug line-clamp-2 font-normal">
+                <p className="text-[11px] text-muted-foreground mt-1 leading-snug line-clamp-2 font-normal">
                   {atividade.descricao}
                 </p>
               )}
@@ -139,14 +139,14 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
         {atividade.total_insumos > 0 && (
           <div className="mt-3 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-zinc-600">
+              <span className="text-[10px] text-muted-foreground/70">
                 {atividade.insumos_aprovados}/{atividade.total_insumos} aprovados
               </span>
               <span className={cn('text-[10px] font-bold', progressColor)}>
                 {atividade.progresso}%
               </span>
             </div>
-            <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-1 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn('h-full rounded-full transition-all duration-500', progressBarColor)}
                 style={{ width: `${atividade.progresso}%` }}
@@ -164,7 +164,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
                 variant={latestInsumo.status_aprovacao === 'aprovado' ? 'success' : 'outline'}
                 className={cn(
                   'text-[9px] h-5',
-                  latestInsumo.status_aprovacao !== 'aprovado' && 'text-zinc-500 border-zinc-700'
+                  latestInsumo.status_aprovacao !== 'aprovado' && 'text-muted-foreground border-border'
                 )}
               >
                 {latestInsumo.status_aprovacao === 'aprovado' ? (
@@ -192,7 +192,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
                     `/project/${projeto.id}/${atividade.disciplina}/resultado/${insumo.id}`
                   )
                 }}
-                className="h-7 px-2.5 text-[11px] gap-1.5 border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300 hover:border-zinc-600"
+                className="h-7 px-2.5 text-[11px] gap-1.5 border-border text-muted-foreground hover:bg-accent hover:text-foreground"
               >
                 <Eye className="w-3 h-3" />
                 Ver resultado
@@ -214,7 +214,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
                 'h-7 px-2.5 text-[11px] gap-1.5 font-medium',
                 'gradient-primary border-0 text-white',
                 'hover:opacity-90 disabled:opacity-40',
-                'shadow-lg shadow-indigo-500/20'
+                'shadow-lg shadow-primary/20'
               )}
             >
               {isExecuting
@@ -230,12 +230,12 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
       {/* Expand section */}
       {hasContent && (
         <div className={cn(
-          'border-t border-zinc-800/60',
-          !expanded && 'bg-zinc-900/40'
+          'border-t border-border/60',
+          !expanded && 'bg-card/40'
         )}>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1.5 text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors w-full text-left px-4 py-2"
+            className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full text-left px-4 py-2"
           >
             <FileText className="w-3 h-3" />
             <span className="font-medium">{allInsumos.length} versão(ões) disponível(is)</span>
@@ -256,8 +256,8 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
                     className={cn(
                       'text-[10px] font-mono px-2 py-1 rounded-md border transition-all duration-150',
                       selectedInsumo?.id === insumo.id
-                        ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-400'
-                        : 'border-zinc-700 text-zinc-600 hover:border-zinc-600 hover:text-zinc-400 bg-zinc-800/50'
+                        ? 'border-primary/50 bg-primary/10 text-primary'
+                        : 'border-border text-muted-foreground hover:border-border/80 hover:text-foreground bg-muted/50'
                     )}
                   >
                     v{insumo.versao}
@@ -298,7 +298,7 @@ export function ActivityGrid({ atividades, projeto, iteracao, isLoading }: Activ
         {[1, 2, 3, 4].map(i => (
           <div
             key={i}
-            className="h-36 rounded-lg bg-zinc-900 border border-zinc-800 animate-pulse card-accent-indigo"
+            className="h-36 rounded-lg bg-card border border-border animate-pulse card-accent-indigo"
           />
         ))}
       </div>
@@ -308,12 +308,12 @@ export function ActivityGrid({ atividades, projeto, iteracao, isLoading }: Activ
   if (!atividades.length) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center ring-inset-subtle">
-          <FileText className="w-7 h-7 text-zinc-700" />
+        <div className="w-14 h-14 rounded-2xl bg-card border border-border flex items-center justify-center ring-inset-subtle">
+          <FileText className="w-7 h-7 text-muted-foreground/40" />
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium text-zinc-400">Nenhuma atividade configurada</p>
-          <p className="text-xs text-zinc-600 mt-1">Esta disciplina ainda não possui atividades definidas.</p>
+          <p className="text-sm font-medium text-muted-foreground">Nenhuma atividade configurada</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Esta disciplina ainda não possui atividades definidas.</p>
         </div>
       </div>
     )

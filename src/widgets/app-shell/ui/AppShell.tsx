@@ -68,7 +68,7 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-950">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}
       <Sidebar iteracao={iteracao} progresso={progresso} />
 
@@ -82,17 +82,17 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
         role="separator"
         aria-label="Redimensionar painel do chat"
         onMouseDown={handleResizeMouseDown}
-        className="shrink-0 w-1.5 flex flex-col items-center justify-center bg-zinc-900/80 hover:bg-zinc-700/80 border-l border-zinc-800/60 cursor-col-resize transition-colors group"
+        className="shrink-0 w-1.5 flex flex-col items-center justify-center bg-card/80 hover:bg-accent/80 border-l border-border/60 cursor-col-resize transition-colors group"
         style={{ minWidth: 6 }}
       >
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
-          <GripVertical className="w-3 h-3 text-zinc-500" />
+          <GripVertical className="w-3 h-3 text-muted-foreground" />
         </div>
       </div>
 
       {/* Agent Chat Panel */}
       <div
-        className="shrink-0 border-l border-zinc-800/60 flex flex-col overflow-hidden bg-zinc-950"
+        className="shrink-0 border-l border-border/60 flex flex-col overflow-hidden bg-background"
         style={{ width: chatWidth }}
       >
         {iteracao ? (
@@ -104,12 +104,12 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
-            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center ring-inset-subtle">
-              <Sparkles className="w-5 h-5 text-zinc-700" />
+            <div className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center ring-inset-subtle">
+              <Sparkles className="w-5 h-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-xs font-medium text-zinc-500">Agente inativo</p>
-              <p className="text-[11px] text-zinc-700 mt-1 leading-snug">
+              <p className="text-xs font-medium text-muted-foreground">Agente inativo</p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1 leading-snug">
                 Selecione uma iteração ativa para iniciar o chat com o agente.
               </p>
             </div>

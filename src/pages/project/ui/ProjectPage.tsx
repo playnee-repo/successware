@@ -93,7 +93,7 @@ function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) 
     <div className="space-y-6">
       {/* Discipline header card */}
       <div className={cn(
-        'bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden ring-1 ring-inset ring-white/5',
+        'bg-card border border-border rounded-xl overflow-hidden ring-1 ring-inset ring-black/5',
       )}>
         <div className={cn(
           'px-6 py-5 bg-gradient-to-r via-transparent to-transparent',
@@ -108,10 +108,10 @@ function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) 
                 <Layers className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-zinc-100 leading-tight">
+                <h2 className="text-base font-bold text-foreground leading-tight">
                   {DISCIPLINA_TITLES[disciplina] ?? disciplina.charAt(0).toUpperCase() + disciplina.slice(1).replace(/_/g, ' ')}
                 </h2>
-                <p className="text-xs text-zinc-500 mt-1 leading-snug max-w-md">
+                <p className="text-xs text-muted-foreground mt-1 leading-snug max-w-md">
                   {DISCIPLINA_DESCRIPTIONS[disciplina] ?? `Atividades da disciplina ${disciplina}.`}
                 </p>
               </div>
@@ -122,7 +122,7 @@ function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) 
                 <p className={cn('text-2xl font-black leading-none', progressColor)}>
                   {totalProgresso}%
                 </p>
-                <p className="text-[10px] text-zinc-600 mt-1">
+                <p className="text-[10px] text-muted-foreground/60 mt-1">
                   {insumosAprovados}/{totalInsumos} aprovados
                 </p>
               </div>
@@ -146,16 +146,16 @@ function NoIteracaoMessage() {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-5 text-center py-24">
       <div className="relative">
-        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center ring-inset-subtle">
-          <Layers className="w-7 h-7 text-zinc-700" />
+        <div className="w-16 h-16 rounded-2xl bg-card border border-border flex items-center justify-center ring-inset-subtle">
+          <Layers className="w-7 h-7 text-muted-foreground/40" />
         </div>
         <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg gradient-primary flex items-center justify-center ring-inset-subtle">
           <Zap className="w-3.5 h-3.5 text-white" />
         </div>
       </div>
       <div>
-        <p className="text-sm font-bold text-zinc-300">Nenhuma iteração ativa</p>
-        <p className="text-xs text-zinc-600 mt-1.5 max-w-xs leading-relaxed">
+        <p className="text-sm font-bold text-foreground">Nenhuma iteração ativa</p>
+        <p className="text-xs text-muted-foreground mt-1.5 max-w-xs leading-relaxed">
           Use o seletor no cabeçalho para ativar ou criar uma iteração e começar a trabalhar.
         </p>
       </div>
@@ -176,10 +176,10 @@ export function ProjectPage() {
 
   if (projectLoading || iteracoesLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-zinc-950">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-          <p className="text-xs text-zinc-600">Carregando projeto...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground">Carregando projeto...</p>
         </div>
       </div>
     )
@@ -187,11 +187,11 @@ export function ProjectPage() {
 
   if (projectError || !projeto) {
     return (
-      <div className="flex items-center justify-center h-screen bg-zinc-950 gap-3">
+      <div className="flex items-center justify-center h-screen bg-background gap-3">
         <div className="flex flex-col items-center gap-3">
-          <AlertCircle className="w-8 h-8 text-red-500" />
-          <p className="text-sm font-medium text-zinc-300">Projeto não encontrado</p>
-          <p className="text-xs text-zinc-600">Verifique o link ou volte ao painel principal.</p>
+          <AlertCircle className="w-8 h-8 text-destructive" />
+          <p className="text-sm font-medium text-foreground">Projeto não encontrado</p>
+          <p className="text-xs text-muted-foreground">Verifique o link ou volte ao painel principal.</p>
         </div>
       </div>
     )

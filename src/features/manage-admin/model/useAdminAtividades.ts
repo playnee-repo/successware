@@ -66,3 +66,17 @@ export function useDeleteAtividade() {
     onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
   })
 }
+
+export function useRenameDisciplina() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ oldName, newName }: { oldName: string; newName: string }) => {
+      const { error } = await supabase
+        .from('atividades')
+        .update({ disciplina: newName })
+        .eq('disciplina', oldName)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
+  })
+}

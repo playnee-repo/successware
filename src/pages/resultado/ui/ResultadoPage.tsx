@@ -23,7 +23,7 @@ import type { InsumoProject, ApprovalStatus } from '@/entities/artifact/model/ty
 import { DISCIPLINA_LABELS } from '@/entities/artifact/model/types'
 
 const STATUS_CONFIG: Record<ApprovalStatus, { label: string; className: string }> = {
-  rascunho: { label: 'Rascunho', className: 'bg-zinc-700/60 text-zinc-400 border-zinc-600/40' },
+  rascunho: { label: 'Rascunho', className: 'bg-muted text-muted-foreground border-border/60' },
   em_revisao: { label: 'Em Revisão', className: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
   aprovado: { label: 'Aprovado', className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
   rejeitado: { label: 'Rejeitado', className: 'bg-red-500/15 text-red-400 border-red-500/25' },
@@ -78,11 +78,11 @@ function ResultadoEditableContent({
   return (
     <div className="flex flex-col gap-0">
       {/* Barra fixa ao rolar: Salvar sempre visível e disponível */}
-      <div className="sticky top-0 z-20 flex items-center justify-end gap-3 py-3 -mx-6 px-6 mb-3 bg-zinc-900/95 border-b border-zinc-800/80 backdrop-blur-sm">
+      <div className="sticky top-0 z-20 flex items-center justify-end gap-3 py-3 -mx-6 px-6 mb-3 bg-card/95 border-b border-border/80 backdrop-blur-sm">
         <Button
           onClick={handleSave}
           disabled={updateContent.isPending}
-          className="h-9 px-4 gradient-primary border-0 text-white text-sm font-medium gap-2 shadow-lg shadow-indigo-500/20 hover:opacity-90"
+          className="h-9 px-4 gradient-primary border-0 text-white text-sm font-medium gap-2 shadow-lg shadow-primary/20 hover:opacity-90"
         >
           {updateContent.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -130,10 +130,10 @@ export function ResultadoPage() {
 
   if (projectLoading || insumoLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-zinc-950">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-          <p className="text-xs text-zinc-600">Carregando resultado...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground">Carregando resultado...</p>
         </div>
       </div>
     )
@@ -141,11 +141,11 @@ export function ResultadoPage() {
 
   if (insumoError || !insumo || !projeto) {
     return (
-      <div className="flex items-center justify-center h-screen bg-zinc-950 gap-3">
+      <div className="flex items-center justify-center h-screen bg-background gap-3">
         <div className="flex flex-col items-center gap-3">
-          <AlertCircle className="w-8 h-8 text-red-500" />
-          <p className="text-sm font-medium text-zinc-300">Resultado não encontrado</p>
-          <p className="text-xs text-zinc-600">Verifique o link ou volte ao projeto.</p>
+          <AlertCircle className="w-8 h-8 text-destructive" />
+          <p className="text-sm font-medium text-foreground">Resultado não encontrado</p>
+          <p className="text-xs text-muted-foreground">Verifique o link ou volte ao projeto.</p>
           <Button variant="outline" onClick={() => navigate(`/project/${projectId}/${disciplina}`)}>
             Voltar
           </Button>
@@ -187,49 +187,49 @@ export function ResultadoPage() {
       <ScrollArea className="flex-1">
         <div className="p-6 max-w-4xl mx-auto">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-xs text-zinc-500 mb-6">
+          <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-6">
             <Link
               to={`/project/${projectId}`}
-              className="hover:text-zinc-300 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               {projeto.nome}
             </Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <Link
               to={backUrl}
-              className="hover:text-zinc-300 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               {disciplinaLabel}
             </Link>
             <ChevronRight className="w-3.5 h-3.5" />
             {atividade && (
               <>
-                <span className="text-zinc-500">{atividade.nome}</span>
+                <span className="text-muted-foreground">{atividade.nome}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </>
             )}
-            <span className="text-zinc-300 font-medium">Resultado v{insumo.versao}</span>
+            <span className="text-foreground font-medium">Resultado v{insumo.versao}</span>
           </nav>
 
           {/* Header card */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden ring-1 ring-inset ring-white/5 mb-6">
+          <div className="bg-card border border-border rounded-xl overflow-hidden ring-1 ring-inset ring-black/5 mb-6">
             <div className="px-5 py-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-indigo-400" />
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-zinc-100">
+                  <h1 className="text-lg font-bold text-foreground">
                     {atividade?.nome ?? 'Resultado'}
                   </h1>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-mono text-zinc-600">v{insumo.versao}</span>
+                    <span className="text-[10px] font-mono text-muted-foreground/60">v{insumo.versao}</span>
                     {statusConfig && (
                       <Badge variant="outline" className={cn('text-[9px] h-5', statusConfig.className)}>
                         {statusConfig.label}
                       </Badge>
                     )}
-                    <span className="text-[10px] text-zinc-600">
+                    <span className="text-[10px] text-muted-foreground/60">
                       {formatDateTime(insumo.atualizado_em)}
                     </span>
                   </div>
@@ -239,7 +239,7 @@ export function ResultadoPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-zinc-700 text-zinc-400"
+                  className="border-border text-muted-foreground"
                   onClick={() => navigate(backUrl)}
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -260,7 +260,7 @@ export function ResultadoPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 border-zinc-700"
+                    className="h-8 border-border"
                     onClick={() => handleStatusUpdate('em_revisao')}
                     disabled={updateStatus.isPending}
                   >
@@ -272,7 +272,7 @@ export function ResultadoPage() {
           </div>
 
           {/* Editable content */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 ring-1 ring-inset ring-white/5">
+          <div className="bg-card border border-border rounded-xl p-6 ring-1 ring-inset ring-black/5">
             <ResultadoEditableContent insumo={insumo} />
           </div>
         </div>

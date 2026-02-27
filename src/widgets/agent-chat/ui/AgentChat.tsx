@@ -111,8 +111,8 @@ function MessageBubble({ message, agentAbbr = 'SC' }: { message: ChatMessage; ag
             className={cn(
               'text-xs font-bold',
               isUser
-                ? 'bg-zinc-700 text-zinc-300'
-                : 'bg-indigo-500/20 text-indigo-400'
+                ? 'bg-muted text-muted-foreground'
+                : 'bg-primary/20 text-primary'
             )}
           >
             {isUser ? <User className="w-3 h-3" /> : agentAbbr}
@@ -129,8 +129,8 @@ function MessageBubble({ message, agentAbbr = 'SC' }: { message: ChatMessage; ag
           className={cn(
             'px-3.5 py-2.5 text-xs leading-relaxed',
             isUser
-              ? 'chat-bubble-user text-zinc-200'
-              : 'chat-bubble-agent text-zinc-200 chat-markdown group/bubble'
+              ? 'chat-bubble-user text-foreground'
+              : 'chat-bubble-agent text-foreground chat-markdown group/bubble'
           )}
         >
           {isUser ? (
@@ -141,25 +141,25 @@ function MessageBubble({ message, agentAbbr = 'SC' }: { message: ChatMessage; ag
                 remarkPlugins={[remarkGfm]}
                 components={{
                   p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                  strong: ({ children }) => <strong className="font-semibold text-zinc-100">{children}</strong>,
+                  strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
                   ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-0.5 pl-0">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-0.5 pl-0">{children}</ol>,
                   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                  hr: () => <hr className="border-zinc-600/80 my-3" />,
-                  h1: ({ children }) => <p className="font-semibold text-zinc-100 mt-2 mb-1 first:mt-0">{children}</p>,
-                  h2: ({ children }) => <p className="font-semibold text-zinc-100 mt-2 mb-1 first:mt-0">{children}</p>,
-                  h3: ({ children }) => <p className="font-medium text-zinc-200 mt-2 mb-1 first:mt-0">{children}</p>,
-                  code: ({ children }) => <code className="bg-zinc-700/80 px-1 py-0.5 rounded text-[11px]">{children}</code>,
-                  pre: ({ children }) => <pre className="bg-zinc-800/80 p-2 rounded-lg overflow-x-auto text-[11px] my-2">{children}</pre>,
+                  hr: () => <hr className="border-border/80 my-3" />,
+                  h1: ({ children }) => <p className="font-semibold text-foreground mt-2 mb-1 first:mt-0">{children}</p>,
+                  h2: ({ children }) => <p className="font-semibold text-foreground mt-2 mb-1 first:mt-0">{children}</p>,
+                  h3: ({ children }) => <p className="font-medium text-foreground mt-2 mb-1 first:mt-0">{children}</p>,
+                  code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-[11px]">{children}</code>,
+                  pre: ({ children }) => <pre className="bg-muted p-2 rounded-lg overflow-x-auto text-[11px] my-2">{children}</pre>,
                 }}
               >
                 {message.conteudo}
               </ReactMarkdown>
-              <div className="flex items-center gap-1 mt-2 pt-2 border-t border-zinc-700/50 opacity-70 group-hover/bubble:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border/50 opacity-70 group-hover/bubble:opacity-100 transition-opacity">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-[10px] text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/80"
+                  className="h-7 px-2 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted"
                   onClick={handleCopy}
                 >
                   {copied ? (
@@ -178,7 +178,7 @@ function MessageBubble({ message, agentAbbr = 'SC' }: { message: ChatMessage; ag
             </>
           )}
         </div>
-        <span className="text-[9px] text-zinc-700 px-1">{timeStr}</span>
+        <span className="text-[9px] text-muted-foreground/50 px-1">{timeStr}</span>
       </div>
     </div>
   )
@@ -280,31 +280,31 @@ export function AgentChat({
   const contextLine = chatContext ? contextSummary(chatContext) : ''
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
-      <div className="shrink-0 border-b border-zinc-800/60">
-        <div className="px-4 py-3 bg-gradient-to-r from-indigo-600/10 via-indigo-500/5 to-transparent">
+    <div className="flex flex-col h-full bg-background">
+      <div className="shrink-0 border-b border-border/60">
+        <div className="px-4 py-3 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
           <div className="flex items-center gap-3">
             <div className="relative shrink-0">
               <Avatar className="w-9 h-9">
-                <AvatarFallback className={cn(agentColors.bg, agentColors.text, 'text-xs font-bold border border-indigo-500/20')}>
+                <AvatarFallback className={cn(agentColors.bg, agentColors.text, 'text-xs font-bold border border-primary/20')}>
                   {agentColors.abbr}
                 </AvatarFallback>
               </Avatar>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-zinc-950" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-zinc-100">{agente}</span>
+                <span className="text-sm font-bold text-foreground">{agente}</span>
                 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
                   ONLINE
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-500 mt-0.5">
+              <p className="text-[10px] text-muted-foreground mt-0.5">
                 {agentCfg?.descricao ?? 'Especialista no projeto e no contexto atual. Ajuda a melhorar os itens gerados.'}
               </p>
               {contextLine && (
-                <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-500 bg-zinc-800/50 border border-zinc-700/40 rounded-md px-2 py-1">
-                  <MapPin className="w-3 h-3 text-indigo-400 shrink-0" />
+                <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground bg-muted/50 border border-border/40 rounded-md px-2 py-1">
+                  <MapPin className="w-3 h-3 text-primary shrink-0" />
                   <span className="truncate">{contextLine}</span>
                 </div>
               )}
@@ -316,12 +316,12 @@ export function AgentChat({
       <ScrollArea className="flex-1 px-3 py-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 gap-3 text-center px-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center ring-inset-subtle">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center ring-inset-subtle">
+              <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs font-medium text-zinc-400">Conversa não é salva</p>
-              <p className="text-[11px] text-zinc-600 mt-1 leading-snug">
+              <p className="text-xs font-medium text-muted-foreground">Conversa não é salva</p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1 leading-snug">
                 {contextLine
                   ? 'Peça melhorias nos itens (ex.: "melhore o X"). O agente sugere versões para você copiar e aplicar.'
                   : 'Envie uma mensagem para começar. Ao sair e voltar, a conversa recomeça.'}
@@ -345,7 +345,7 @@ export function AgentChat({
                     {[0, 1, 2].map((i) => (
                       <span
                         key={i}
-                        className="w-1.5 h-1.5 bg-zinc-600 rounded-full animate-pulse-dot"
+                        className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-pulse-dot"
                         style={{ animationDelay: `${i * 0.2}s` }}
                       />
                     ))}
@@ -358,7 +358,7 @@ export function AgentChat({
         )}
       </ScrollArea>
 
-      <div className="px-3 py-3 border-t border-zinc-800/60 shrink-0 bg-zinc-950">
+      <div className="px-3 py-3 border-t border-border/60 shrink-0 bg-background">
         <div className="flex gap-2.5 items-end">
           <Textarea
             ref={textareaRef}
@@ -372,8 +372,8 @@ export function AgentChat({
             }
             className={cn(
               'min-h-[44px] max-h-[140px] py-2.5 px-3 text-sm leading-snug resize-none overflow-y-auto',
-              'bg-zinc-900/90 border border-zinc-700/80 text-zinc-100 placeholder:text-zinc-500',
-              'focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:border-indigo-500/50',
+              'bg-card/90 border border-border text-foreground placeholder:text-muted-foreground',
+              'focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:border-ring/50',
               'rounded-xl transition-[box-shadow,border-color]'
             )}
             rows={1}
@@ -386,7 +386,7 @@ export function AgentChat({
               'shrink-0 h-10 w-10 rounded-xl',
               'gradient-primary border-0 text-white',
               'hover:opacity-90 disabled:opacity-30',
-              'shadow-md shadow-indigo-500/20'
+              'shadow-md shadow-primary/20'
             )}
           >
             {sendMutation.isPending ? (
@@ -396,7 +396,7 @@ export function AgentChat({
             )}
           </Button>
         </div>
-        <p className="text-[10px] text-zinc-600 mt-2 text-center">
+        <p className="text-[10px] text-muted-foreground/60 mt-2 text-center">
           Enter envia · Shift+Enter quebra linha
         </p>
       </div>

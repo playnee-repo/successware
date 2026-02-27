@@ -1,14 +1,11 @@
 -- SDLC Copilot — Schema MVP
 -- Disciplinas SDLC: descoberta, requisitos, arquitetura, construcao, qualidade
 
--- Extensões
-create extension if not exists "uuid-ossp";
-
 -- ============================================================
 -- PROJETOS
 -- ============================================================
 create table if not exists projetos (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   nome        text not null,
   descricao   text,
   status      text not null default 'ativo' check (status in ('ativo', 'pausado', 'concluido', 'arquivado')),
@@ -21,7 +18,7 @@ create table if not exists projetos (
 -- ITERAÇÕES
 -- ============================================================
 create table if not exists iteracoes (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default gen_random_uuid(),
   projeto_id    uuid not null references projetos(id) on delete cascade,
   nome          text not null,
   modulo_foco   text,
@@ -35,7 +32,7 @@ create table if not exists iteracoes (
 -- ATIVIDADES (templates por disciplina — shared across projects)
 -- ============================================================
 create table if not exists atividades (
-  id           uuid primary key default uuid_generate_v4(),
+  id           uuid primary key default gen_random_uuid(),
   disciplina   text not null check (disciplina in ('descoberta', 'requisitos', 'arquitetura', 'construcao', 'qualidade')),
   nome         text not null,
   descricao    text,
@@ -49,7 +46,7 @@ create table if not exists atividades (
 -- DEFINIÇÕES DE INSUMOS (schema / template por atividade)
 -- ============================================================
 create table if not exists definicoes_insumos (
-  id                    uuid primary key default uuid_generate_v4(),
+  id                    uuid primary key default gen_random_uuid(),
   atividade_id          uuid not null references atividades(id) on delete cascade,
   tipo_insumo           text not null,
   agente_responsavel    text not null default 'SCRIBE',
@@ -62,7 +59,7 @@ create table if not exists definicoes_insumos (
 -- INSUMOS DO PROJETO (artefatos versionados por iteração)
 -- ============================================================
 create table if not exists insumos_projeto (
-  id                 uuid primary key default uuid_generate_v4(),
+  id                 uuid primary key default gen_random_uuid(),
   iteracao_id        uuid not null references iteracoes(id) on delete cascade,
   atividade_id       uuid not null references atividades(id) on delete cascade,
   definicao_id       uuid not null references definicoes_insumos(id) on delete cascade,
@@ -82,7 +79,7 @@ create index idx_insumos_iteracao_atividade on insumos_projeto(iteracao_id, ativ
 -- MENSAGENS DO AGENTE (histórico de chat por iteração)
 -- ============================================================
 create table if not exists mensagens_agente (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default gen_random_uuid(),
   iteracao_id   uuid not null references iteracoes(id) on delete cascade,
   disciplina    text not null,
   agente        text not null default 'SCRIBE',
