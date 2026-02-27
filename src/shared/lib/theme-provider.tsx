@@ -44,11 +44,10 @@ const COLOR_KEY = 'theme-color'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function readMode(): ThemeMode {
-  if (typeof window === 'undefined') return 'dark'
+  if (typeof window === 'undefined') return 'light'
   const stored = localStorage.getItem(MODE_KEY) as ThemeMode | null
   if (stored === 'light' || stored === 'dark') return stored
-  if (document.documentElement.classList.contains('dark')) return 'dark'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'light'
 }
 
 function readColorTheme(): ColorTheme {
