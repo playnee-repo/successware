@@ -5,21 +5,21 @@ import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { BlockNoteField } from '@/shared/ui/blocknote-field'
-import { buildInsumoContentPreview } from '@/shared/lib/insumo-preview'
+import { buildArtefatoContentPreview } from '@/shared/lib/artefato-preview'
 import { ScrollArea } from '@/shared/ui/scroll-area'
 import { supabase } from '@/shared/api/supabase'
 import { AppShell } from '@/widgets/app-shell/ui/AppShell'
 import { Header } from '@/widgets/header/ui/Header'
 import {
-  useInsumo,
+  useArtefato,
   useAtividade,
-  useUpdateInsumoContent,
+  useUpdateArtefatoContent,
   useUpdateApprovalStatus,
 } from '@/features/manage-artifacts/model/useArtifacts'
 import { useIterations } from '@/features/manage-iterations/model/useIterations'
 import { cn, formatDateTime } from '@/shared/lib/utils'
 import type { Project } from '@/entities/project/model/types'
-import type { InsumoProject, ApprovalStatus } from '@/entities/artifact/model/types'
+import type { Artefato, ApprovalStatus } from '@/entities/artifact/model/types'
 import { DISCIPLINA_LABELS } from '@/entities/artifact/model/types'
 
 const STATUS_CONFIG: Record<ApprovalStatus, { label: string; className: string }> = {
@@ -46,14 +46,14 @@ function useProject(projectId: string | undefined) {
 }
 
 function ResultadoEditableContent({
-  insumo,
+  artefato,
   onSaved,
 }: {
-  insumo: InsumoProject
+  artefato: Artefato
   onSaved?: () => void
 }) {
-  const updateContent = useUpdateInsumoContent()
-  const conteudo = insumo.conteudo_json as Record<string, unknown>
+  const updateContent = useUpdateArtefatoContent()
+  const conteudo = artefato.conteudo_json as Record<string, unknown>
 
   const initialText = typeof conteudo?.md === 'string'
     ? conteudo.md
@@ -62,15 +62,15 @@ function ResultadoEditableContent({
   const [markdownText, setMarkdownText] = useState(initialText)
 
   useEffect(() => {
-    const c = insumo.conteudo_json as Record<string, unknown>
+    const c = artefato.conteudo_json as Record<string, unknown>
     setMarkdownText(typeof c?.md === 'string' ? c.md : JSON.stringify(c, null, 2))
-  }, [insumo.id, insumo.conteudo_json])
+  }, [artefato.id, artefato.conteudo_json])
 
   const handleSave = async () => {
     await updateContent.mutateAsync({
-      insumoId: insumo.id,
+      artefatoId: artefato.id,
       conteudo_json: { md: markdownText },
-      iteracaoId: insumo.iteracao_id,
+      iteracaoId: artefato.iteracao_id,
     })
     onSaved?.()
   }
@@ -103,32 +103,32 @@ function ResultadoEditableContent({
 }
 
 export function ResultadoPage() {
-  const { projectId, disciplina = 'requisitos', insumoId } = useParams()
+  const { projectId, disciplina = 'requisitos', artefatoId } = useParams()
   const navigate = useNavigate()
-  const { data: insumo, isLoading: insumoLoading, error: insumoError } = useInsumo(insumoId)
+  const { data: artefato, isLoading: artefatoLoading, error: artefatoError } = useArtefato(artefatoId)
   const { data: projeto, isLoading: projectLoading } = useProject(projectId)
-  const { data: atividade } = useAtividade(insumo?.atividade_id)
+  const { data: atividade } = useAtividade(artefato?.atividade_id)
   const { data: iteracoes = [] } = useIterations(projectId)
   const updateStatus = useUpdateApprovalStatus()
 
   const activeIteracao = useMemo(
-    () => iteracoes.find((i) => i.id === insumo?.iteracao_id) ?? iteracoes.find((i) => i.status === 'ativa') ?? iteracoes[0] ?? null,
-    [iteracoes, insumo?.iteracao_id]
+    () => iteracoes.find((i) => i.id === artefato?.iteracao_id) ?? iteracoes.find((i) => i.status === 'ativa') ?? iteracoes[0] ?? null,
+    [iteracoes, artefato?.iteracao_id]
   )
 
   const disciplinaLabel = DISCIPLINA_LABELS[disciplina as keyof typeof DISCIPLINA_LABELS] ?? disciplina
-  const statusConfig = insumo ? STATUS_CONFIG[insumo.status_aprovacao] : null
+  const statusConfig = artefato ? STATUS_CONFIG[artefato.status_aprovacao] : null
 
   const handleStatusUpdate = async (status: ApprovalStatus) => {
-    if (!insumo) return
+    if (!artefato) return
     await updateStatus.mutateAsync({
-      insumoId: insumo.id,
+      artefatoId: artefato.id,
       status,
-      iteracaoId: insumo.iteracao_id,
+      iteracaoId: artefato.iteracao_id,
     })
   }
 
-  if (projectLoading || insumoLoading) {
+  if (projectLoading || artefatoLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -139,7 +139,7 @@ export function ResultadoPage() {
     )
   }
 
-  if (insumoError || !insumo || !projeto) {
+  if (artefatoError || !artefato || !projeto) {
     return (
       <div className="flex items-center justify-center h-screen bg-background gap-3">
         <div className="flex flex-col items-center gap-3">
@@ -157,16 +157,20 @@ export function ResultadoPage() {
   const backUrl = `/project/${projectId}/${disciplina}`
 
   const chatContext =
-    projeto && insumo && activeIteracao
+    projeto && artefato && activeIteracao
       ? {
           projectId: projeto.id,
           projectName: projeto.nome,
           disciplina,
           route: 'resultado' as const,
-          insumoId: insumo.id,
-          insumoName: atividade?.nome,
-          insumoSummary: atividade?.nome ? `${atividade.nome} · v${insumo.versao}` : `v${insumo.versao}`,
-          insumoContentPreview: buildInsumoContentPreview(insumo.conteudo_json),
+          artefatoId: artefato.id,
+          artefatoName: artefato.nome || atividade?.nome,
+          artefatoSummary: artefato.nome
+            ? `${artefato.nome} · v${artefato.versao}`
+            : atividade?.nome
+            ? `${atividade.nome} · v${artefato.versao}`
+            : `v${artefato.versao}`,
+          artefatoContentPreview: buildArtefatoContentPreview(artefato.conteudo_json),
         }
       : undefined
 
@@ -175,7 +179,7 @@ export function ResultadoPage() {
       iteracao={activeIteracao}
       disciplina={disciplina}
       progresso={0}
-      agentId={insumo.agente_autor}
+      agentId={artefato.agente_autor}
       chatContext={chatContext}
     >
       <Header
@@ -208,7 +212,9 @@ export function ResultadoPage() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </>
             )}
-            <span className="text-foreground font-medium">Resultado v{insumo.versao}</span>
+            <span className="text-foreground font-medium">
+              {artefato.nome || `Resultado v${artefato.versao}`}
+            </span>
           </nav>
 
           {/* Header card */}
@@ -220,17 +226,17 @@ export function ResultadoPage() {
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-foreground">
-                    {atividade?.nome ?? 'Resultado'}
+                    {artefato.nome || atividade?.nome || 'Resultado'}
                   </h1>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-mono text-muted-foreground/60">v{insumo.versao}</span>
+                    <span className="text-[10px] font-mono text-muted-foreground/60">v{artefato.versao}</span>
                     {statusConfig && (
                       <Badge variant="outline" className={cn('text-[9px] h-5', statusConfig.className)}>
                         {statusConfig.label}
                       </Badge>
                     )}
                     <span className="text-[10px] text-muted-foreground/60">
-                      {formatDateTime(insumo.atualizado_em)}
+                      {formatDateTime(artefato.atualizado_em)}
                     </span>
                   </div>
                 </div>
@@ -245,7 +251,7 @@ export function ResultadoPage() {
                   <ArrowLeft className="w-4 h-4" />
                   Voltar
                 </Button>
-                {insumo.status_aprovacao !== 'aprovado' && (
+                {artefato.status_aprovacao !== 'aprovado' && (
                   <Button
                     size="sm"
                     className="h-8 bg-emerald-600 hover:bg-emerald-500 text-white border-0"
@@ -256,7 +262,7 @@ export function ResultadoPage() {
                     Aprovar
                   </Button>
                 )}
-                {insumo.status_aprovacao === 'aprovado' && (
+                {artefato.status_aprovacao === 'aprovado' && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -273,7 +279,7 @@ export function ResultadoPage() {
 
           {/* Editable content */}
           <div className="bg-card border border-border rounded-xl p-6 ring-1 ring-inset ring-black/5">
-            <ResultadoEditableContent insumo={insumo} />
+            <ResultadoEditableContent artefato={artefato} />
           </div>
         </div>
       </ScrollArea>

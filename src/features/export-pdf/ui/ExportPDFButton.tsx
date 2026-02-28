@@ -19,7 +19,10 @@ type ExportAtividade = {
   insumo?: {
     versao: number
     status: string
+    tipo: string
     conteudo_md: string | null
+    link_url: string | null
+    link_titulo: string | null
   }
 }
 
@@ -177,7 +180,7 @@ function useExportData(projectId: string, iteracaoId: string | undefined) {
       const [{ data: atividades }, { data: insumos }] = await Promise.all([
         supabase.from('atividades').select('*').order('disciplina').order('ordem'),
         supabase
-          .from('insumos_projeto')
+          .from('artefatos')
           .select('*')
           .eq('iteracao_id', iteracaoId!)
           .order('versao', { ascending: false }),
@@ -211,7 +214,10 @@ function useExportData(projectId: string, iteracaoId: string | undefined) {
             ? {
                 versao: ins.versao,
                 status: ins.status_aprovacao,
+                tipo: (ins as Record<string, unknown>).tipo as string ?? 'texto',
                 conteudo_md: typeof raw?.md === 'string' ? raw.md : null,
+                link_url: typeof raw?.url === 'string' ? raw.url : null,
+                link_titulo: typeof raw?.titulo === 'string' ? raw.titulo : null,
               }
             : undefined,
         })
@@ -292,7 +298,20 @@ function PrintDocument({
                 <p className="activity-desc">{atv.descricao}</p>
               )}
 
-              {atv.insumo?.conteudo_md ? (
+              {atv.insumo?.tipo === 'link' && atv.insumo.link_url ? (
+                <div className="md-content">
+                  <p>
+                    <a href={atv.insumo.link_url} target="_blank" rel="noopener noreferrer">
+                      {atv.insumo.link_titulo || atv.insumo.link_url}
+                    </a>
+                  </p>
+                  {atv.insumo.link_titulo && (
+                    <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                      {atv.insumo.link_url}
+                    </p>
+                  )}
+                </div>
+              ) : atv.insumo?.conteudo_md ? (
                 <div className="md-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {atv.insumo.conteudo_md}

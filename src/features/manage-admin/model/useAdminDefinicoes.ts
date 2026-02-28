@@ -2,11 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/api/supabase'
 import type { Database } from '@/shared/api/supabase'
 
-type DefinicaoRow = Database['public']['Tables']['definicoes_insumos']['Row']
-type DefinicaoInsert = Database['public']['Tables']['definicoes_insumos']['Insert']
-type DefinicaoUpdate = Database['public']['Tables']['definicoes_insumos']['Update']
+type ConfiguracaoRow = Database['public']['Tables']['configuracoes_atividade']['Row']
+type ConfiguracaoInsert = Database['public']['Tables']['configuracoes_atividade']['Insert']
+type ConfiguracaoUpdate = Database['public']['Tables']['configuracoes_atividade']['Update']
 
-export type DefinicaoComAtividade = DefinicaoRow & {
+export type ConfiguracaoComAtividade = ConfiguracaoRow & {
   atividades: {
     id: string
     nome: string
@@ -15,78 +15,96 @@ export type DefinicaoComAtividade = DefinicaoRow & {
   }
 }
 
-const QK = ['admin', 'definicoes'] as const
+/** @deprecated Use ConfiguracaoComAtividade instead */
+export type DefinicaoComAtividade = ConfiguracaoComAtividade
 
-export function useAllDefinicoesComAtividade() {
+const QK = ['admin', 'configuracoes'] as const
+
+export function useAllConfiguracoesComAtividade() {
   return useQuery({
     queryKey: QK,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('definicoes_insumos')
+        .from('configuracoes_atividade')
         .select('*, atividades(id, nome, disciplina, ordem)')
         .order('criado_em')
       if (error) throw error
-      return data as DefinicaoComAtividade[]
+      return data as ConfiguracaoComAtividade[]
     },
   })
 }
 
-export function useDefinicoesByAtividade(atividadeId: string | null) {
+/** @deprecated Use useAllConfiguracoesComAtividade instead */
+export const useAllDefinicoesComAtividade = useAllConfiguracoesComAtividade
+
+export function useConfiguracoesAtividadeAdmin(atividadeId: string | null) {
   return useQuery({
     queryKey: [...QK, 'by-atividade', atividadeId],
     enabled: !!atividadeId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('definicoes_insumos')
+        .from('configuracoes_atividade')
         .select('*, atividades(id, nome, disciplina, ordem)')
         .eq('atividade_id', atividadeId!)
         .order('criado_em')
       if (error) throw error
-      return data as DefinicaoComAtividade[]
+      return data as ConfiguracaoComAtividade[]
     },
   })
 }
 
-export function useCreateDefinicao() {
+/** @deprecated Use useConfiguracoesAtividadeAdmin instead */
+export const useDefinicoesByAtividade = useConfiguracoesAtividadeAdmin
+
+export function useCreateConfiguracao() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (payload: DefinicaoInsert) => {
+    mutationFn: async (payload: ConfiguracaoInsert) => {
       const { data, error } = await supabase
-        .from('definicoes_insumos')
+        .from('configuracoes_atividade')
         .insert(payload)
         .select()
         .single()
       if (error) throw error
-      return data as DefinicaoRow
+      return data as ConfiguracaoRow
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
   })
 }
 
-export function useUpdateDefinicao() {
+/** @deprecated Use useCreateConfiguracao instead */
+export const useCreateDefinicao = useCreateConfiguracao
+
+export function useUpdateConfiguracao() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, ...payload }: DefinicaoUpdate & { id: string }) => {
+    mutationFn: async ({ id, ...payload }: ConfiguracaoUpdate & { id: string }) => {
       const { data, error } = await supabase
-        .from('definicoes_insumos')
+        .from('configuracoes_atividade')
         .update(payload)
         .eq('id', id)
         .select()
         .single()
       if (error) throw error
-      return data as DefinicaoRow
+      return data as ConfiguracaoRow
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
   })
 }
 
-export function useDeleteDefinicao() {
+/** @deprecated Use useUpdateConfiguracao instead */
+export const useUpdateDefinicao = useUpdateConfiguracao
+
+export function useDeleteConfiguracao() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('definicoes_insumos').delete().eq('id', id)
+      const { error } = await supabase.from('configuracoes_atividade').delete().eq('id', id)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
   })
 }
+
+/** @deprecated Use useDeleteConfiguracao instead */
+export const useDeleteDefinicao = useDeleteConfiguracao

@@ -1,24 +1,2 @@
-const MAX_PREVIEW_LEN = 3800
-
-/**
- * Gera um resumo em texto do conteúdo do insumo para o agente do chat.
- * Novo formato: { md: "..." } — retorna o texto Markdown diretamente.
- * Backward compat: se não houver .md, serializa o JSON como fallback.
- */
-export function buildInsumoContentPreview(conteudo: unknown): string {
-  if (conteudo == null) return ''
-
-  const obj = conteudo as Record<string, unknown>
-  if (typeof obj?.md === 'string') {
-    const text = obj.md
-    return text.length > MAX_PREVIEW_LEN ? text.slice(0, MAX_PREVIEW_LEN) + '\n... (truncado)' : text
-  }
-
-  // Fallback: JSON serializado
-  try {
-    const str = typeof conteudo === 'string' ? conteudo : JSON.stringify(conteudo)
-    return str.length > MAX_PREVIEW_LEN ? str.slice(0, MAX_PREVIEW_LEN) + '\n... (truncado)' : str
-  } catch {
-    return ''
-  }
-}
+/** @deprecated Import from artefato-preview instead */
+export { buildArtefatoContentPreview as buildInsumoContentPreview } from './artefato-preview'

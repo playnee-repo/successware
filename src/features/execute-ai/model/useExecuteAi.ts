@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/api/supabase'
 import { getGeminiModelForConfig, buildPrompt, FALLBACK_SYSTEM_PROMPT } from '@/shared/config/gemini'
-import type { Atividade, DefinicaoInsumo, InsumoProject } from '@/entities/artifact/model/types'
+import type { Atividade, ConfiguracaoAtividade, Artefato } from '@/entities/artifact/model/types'
 import type { Iteration } from '@/entities/iteration/model/types'
 import type { Project } from '@/entities/project/model/types'
 
@@ -10,30 +10,31 @@ interface ExecuteAiParams {
   projeto: Project
   iteracao: Iteration
   atividade: Atividade
-  definicao: DefinicaoInsumo
-  insumosAprovados?: InsumoProject[]
+  configuracao: ConfiguracaoAtividade
+  nomeArtefato: string
+  artefatosAprovados?: Artefato[]
 }
 
 interface ExecuteAiResult {
-  insumo: InsumoProject
+  artefato: Artefato
   chatMessage: string
 }
 
 async function executeAiCall(params: ExecuteAiParams): Promise<ExecuteAiResult> {
-  const { projeto, iteracao, atividade, definicao, insumosAprovados = [] } = params
+  const { projeto, iteracao, atividade, configuracao, nomeArtefato, artefatosAprovados = [] } = params
 
-  // 1. Buscar insumo existente para obter versão atual
-  const { data: existingInsumos } = await supabase
-    .from('insumos_projeto')
-    .select('*')
+  // 1. Buscar artefatos existentes com o mesmo nome para obter versão atual
+  const { data: existingArtefatos } = await supabase
+    .from('artefatos')
+    .select('versao')
     .eq('iteracao_id', iteracao.id)
     .eq('atividade_id', atividade.id)
-    .eq('definicao_id', definicao.id)
+    .eq('nome', nomeArtefato)
     .order('versao', { ascending: false })
     .limit(1)
 
-  const currentVersion = existingInsumos && existingInsumos.length > 0
-    ? existingInsumos[0].versao
+  const currentVersion = existingArtefatos && existingArtefatos.length > 0
+    ? existingArtefatos[0].versao
     : 0
   const newVersion = currentVersion + 1
 
@@ -48,17 +49,17 @@ async function executeAiCall(params: ExecuteAiParams): Promise<ExecuteAiResult> 
     ? `\n\n## Documentos do Projeto (contexto obrigatório)\n\n${documentos.map(d => `### ${d.titulo}\n\n${d.conteudo_md}`).join('\n\n---\n\n')}`
     : ''
 
-  // 2b. Montar contexto de insumos aprovados
-  const contextAprovados = insumosAprovados.length > 0
-    ? `\n\n## Insumos já aprovados nesta iteração\n\n${insumosAprovados.map(i => {
-        const c = i.conteudo_json as Record<string, unknown>
+  // 2b. Montar contexto de artefatos aprovados
+  const contextAprovados = artefatosAprovados.length > 0
+    ? `\n\n## Artefatos já aprovados nesta iteração\n\n${artefatosAprovados.map(a => {
+        const c = a.conteudo_json as Record<string, unknown>
         return typeof c?.md === 'string' ? c.md : JSON.stringify(c)
       }).join('\n\n')}`
     : ''
 
   // 3. Montar prompt
-  const agentId = definicao.agente_responsavel || 'SCRIBE'
-  const template = definicao.prompt_template || `Você é ${agentId}, especialista em ${atividade.nome}.
+  const agentId = configuracao.agente_responsavel || 'SCRIBE'
+  const template = configuracao.prompt_template || `Você é ${agentId}, especialista em ${atividade.nome}.
 Projeto: {{projeto_nome}} | Módulo: {{iteracao_modulo}}
 {{documentos}}
 {{contexto}}
@@ -105,12 +106,13 @@ Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
   const conteudoJson: Record<string, unknown> = { md: cleaned || responseText }
 
   // 6. Salvar no banco
-  const { data: novoInsumo, error } = await supabase
-    .from('insumos_projeto')
+  const { data: novoArtefato, error } = await supabase
+    .from('artefatos')
     .insert({
       iteracao_id: iteracao.id,
       atividade_id: atividade.id,
-      definicao_id: definicao.id,
+      configuracao_id: configuracao.id,
+      nome: nomeArtefato,
       conteudo_json: conteudoJson,
       versao: newVersion,
       agente_autor: agentId,
@@ -120,16 +122,16 @@ Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
     .select()
     .single()
 
-  if (error || !novoInsumo) {
-    throw new Error(`Erro ao salvar insumo: ${error?.message}`)
+  if (error || !novoArtefato) {
+    throw new Error(`Erro ao salvar artefato: ${error?.message}`)
   }
 
   // 7. Montar mensagem de resumo para o chat
   const chatMessage = newVersion === 1
-    ? `Gerei a ${atividade.nome} (v${newVersion}) para a iteração **${iteracao.nome}**. Revise o conteúdo no editor e aprove quando estiver satisfeito.`
-    : `Regenerei a ${atividade.nome} — agora na versão **v${newVersion}**. Compare com a versão anterior e aprove se adequado.`
+    ? `Gerei o artefato **${nomeArtefato}** (v${newVersion}) para a iteração **${iteracao.nome}**. Revise o conteúdo no editor e aprove quando estiver satisfeito.`
+    : `Regenerei **${nomeArtefato}** — agora na versão **v${newVersion}**. Compare com a versão anterior e aprove se adequado.`
 
-  return { insumo: novoInsumo as InsumoProject, chatMessage }
+  return { artefato: novoArtefato as Artefato, chatMessage }
 }
 
 export function useExecuteAi() {
@@ -146,7 +148,7 @@ export function useExecuteAi() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['insumos', variables.iteracao.id],
+        queryKey: ['artefatos', variables.iteracao.id],
       })
       queryClient.invalidateQueries({
         queryKey: ['mensagens', variables.iteracao.id],

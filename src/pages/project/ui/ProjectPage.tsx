@@ -82,8 +82,8 @@ function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) 
     ? Math.round(atividades.reduce((sum, a) => sum + a.progresso, 0) / atividades.length)
     : 0
 
-  const insumosAprovados = atividades.reduce((sum, a) => sum + a.insumos_aprovados, 0)
-  const totalInsumos = atividades.reduce((sum, a) => sum + a.total_insumos, 0)
+  const insumosAprovados = atividades.reduce((sum, a) => sum + a.artefatos_aprovados, 0)
+  const totalInsumos = atividades.reduce((sum, a) => sum + a.total_artefatos, 0)
 
   const accentGradient = DISCIPLINA_ACCENT[disciplina] ?? 'from-indigo-600/10'
   const iconClass = DISCIPLINA_ICON_COLOR[disciplina] ?? 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20'

@@ -1,26 +1,27 @@
 /**
- * Biblioteca central de templates de definição de insumo.
- * Schema JSON + prompt já mapeados — use no Admin ao criar/editar definição
- * para evitar digitar JSON e prompt do zero.
+ * Biblioteca central de templates de configuração de atividade.
+ * Prompts já mapeados — use no Admin ao criar/editar configuração
+ * para evitar digitar o prompt do zero.
  */
 
-export interface DefinicaoTemplate {
+export interface ConfiguracaoTemplate {
   /** Identificador do tipo (ex.: user_stories, requisitos_funcionais) */
   tipo_insumo: string
   /** Nome para exibição no seletor */
   nome: string
   /** Agente padrão */
   agente: string
-  /** Schema JSON (objeto) — apenas documental, o output real é Markdown */
-  schema_metadado_json: Record<string, unknown>
   /** Prompt com placeholders {{projeto_nome}}, {{iteracao_modulo}}, {{contexto}} */
   prompt_template: string
 }
 
+/** @deprecated Use ConfiguracaoTemplate instead */
+export type DefinicaoTemplate = ConfiguracaoTemplate
+
 const MARKDOWN_INSTRUCTION = `
 Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicionais.`
 
-export const DEFINICOES_TEMPLATES: DefinicaoTemplate[] = [
+export const CONFIGURACOES_TEMPLATES: ConfiguracaoTemplate[] = [
   // =========================================================================
   // SCRIBE — DESCOBERTA
   // =========================================================================
@@ -28,7 +29,6 @@ export const DEFINICOES_TEMPLATES: DefinicaoTemplate[] = [
     tipo_insumo: 'briefing',
     nome: 'Briefing inicial',
     agente: 'SCRIBE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é SCRIBE, especialista em levantamento inicial de projetos.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -74,7 +74,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'stakeholders',
     nome: 'Análise de stakeholders',
     agente: 'SCRIBE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é SCRIBE, especialista em análise de stakeholders.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -109,7 +108,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'benchmarking',
     nome: 'Benchmarking',
     agente: 'SCRIBE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é SCRIBE, especialista em análise competitiva e benchmarking.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -157,7 +155,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'prototipacao',
     nome: 'Prototipação de interface',
     agente: 'SCRIBE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é SCRIBE, especialista em UX e prototipação de interfaces.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -196,7 +193,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'user_stories',
     nome: 'User Stories (épico + stories)',
     agente: 'SCRIBE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é SCRIBE, especialista em Engenharia de Requisitos ágil.
 Projeto: {{projeto_nome}}
 Módulo/foco da iteração: {{iteracao_modulo}}
@@ -229,7 +225,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'requisitos_funcionais',
     nome: 'Requisitos funcionais e não funcionais',
     agente: 'SCRIBE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é SCRIBE, especialista em levantamento de requisitos.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -268,7 +263,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'criterios_aceitacao',
     nome: 'Critérios de aceitação (BDD/Gherkin)',
     agente: 'SCRIBE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é SCRIBE, especialista em critérios de aceitação BDD.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -310,7 +304,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'diagrama_contexto',
     nome: 'Diagrama de contexto',
     agente: 'ARCH',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é ARCH, especialista em Arquitetura de Software.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -358,7 +351,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'modelo_dados',
     nome: 'Modelo de dados',
     agente: 'ARCH',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é ARCH, especialista em modelagem de dados.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -401,7 +393,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'stack',
     nome: 'Stack tecnológico',
     agente: 'ARCH',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é ARCH, especialista em arquitetura e escolha de tecnologias.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -449,7 +440,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'setup',
     nome: 'Setup do ambiente',
     agente: 'FORGE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é FORGE, especialista em setup e configuração de ambientes de desenvolvimento.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -506,7 +496,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'implementacao',
     nome: 'Implementação core',
     agente: 'FORGE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é FORGE, especialista em desenvolvimento e implementação de software.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -557,7 +546,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'apis',
     nome: 'Integração de APIs',
     agente: 'FORGE',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é FORGE, especialista em integração de APIs e serviços externos.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -610,7 +598,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'plano_testes',
     nome: 'Plano de testes',
     agente: 'GUARDIAN',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é GUARDIAN, especialista em qualidade e testes de software.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -658,7 +645,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'testes_aceitacao',
     nome: 'Testes de aceitação',
     agente: 'GUARDIAN',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é GUARDIAN, especialista em testes de aceitação BDD.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -696,7 +682,6 @@ ${MARKDOWN_INSTRUCTION}`,
     tipo_insumo: 'revisao_seguranca',
     nome: 'Revisão de segurança',
     agente: 'GUARDIAN',
-    schema_metadado_json: { type: 'object' },
     prompt_template: `Você é GUARDIAN, especialista em segurança de aplicações web e OWASP.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -757,6 +742,9 @@ ${MARKDOWN_INSTRUCTION}`,
 ]
 
 /** Retorna template por tipo_insumo ou undefined */
-export function getTemplateByTipo(tipo_insumo: string): DefinicaoTemplate | undefined {
-  return DEFINICOES_TEMPLATES.find((t) => t.tipo_insumo === tipo_insumo)
+export function getTemplateByTipo(tipo_insumo: string): ConfiguracaoTemplate | undefined {
+  return CONFIGURACOES_TEMPLATES.find((t) => t.tipo_insumo === tipo_insumo)
 }
+
+/** @deprecated Use CONFIGURACOES_TEMPLATES instead */
+export const DEFINICOES_TEMPLATES = CONFIGURACOES_TEMPLATES

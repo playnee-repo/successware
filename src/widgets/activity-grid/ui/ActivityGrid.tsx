@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, ChevronDown, ChevronUp, Loader2, FileText, CheckCircle2, Eye } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, Loader2, FileText, ExternalLink, Paperclip, CheckCircle2, Eye, Plus } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
-import { ArtifactEditor } from '@/widgets/artifact-editor/ui/ArtifactEditor'
 import { useExecuteAi } from '@/features/execute-ai/model/useExecuteAi'
+import { useCreateArtefato } from '@/features/manage-artifacts/model/useArtifacts'
 import { supabase } from '@/shared/api/supabase'
 import { cn } from '@/shared/lib/utils'
-import type { AtividadeComProgresso, InsumoProject } from '@/entities/artifact/model/types'
+import { NomeArtefatoDialog } from './NomeArtefatoDialog'
+import type { AtividadeComProgresso, Artefato, ArtefatoTipo, ConfiguracaoAtividade } from '@/entities/artifact/model/types'
 import type { Project } from '@/entities/project/model/types'
 import type { Iteration } from '@/entities/iteration/model/types'
 
@@ -32,50 +33,41 @@ const AGENT_BADGE: Record<string, string> = {
   GUARDIAN: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
 }
 
+/** Agrupa artefatos por nome, retornando {nome, latest, versoes}[] ordenados por nome */
+function groupArtefatosByNome(artefatos: Artefato[]) {
+  const byNome = new Map<string, Artefato[]>()
+  for (const a of artefatos) {
+    if (!byNome.has(a.nome)) byNome.set(a.nome, [])
+    byNome.get(a.nome)!.push(a)
+  }
+  // artefatos já vêm ordenados desc por versão da query
+  return Array.from(byNome.entries()).map(([nome, versoes]) => ({
+    nome,
+    latest: versoes[0],
+    versoes,
+  }))
+}
+
+function ArtefatoTypeIcon({ tipo }: { tipo: ArtefatoTipo }) {
+  if (tipo === 'link') return <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+  if (tipo === 'documento') return <Paperclip className="w-3.5 h-3.5 text-muted-foreground/50" />
+  return <FileText className="w-3.5 h-3.5 text-muted-foreground/50" />
+}
+
 function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(false)
-  const [selectedInsumo, setSelectedInsumo] = useState<InsumoProject | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const { execute, isExecuting } = useExecuteAi()
+  const { mutateAsync: createArtefato } = useCreateArtefato()
   const queryClient = useQueryClient()
-
-  // Merge insumo recém-gerado com os vindos da query (evita depender do refetch para exibir)
-  const allInsumos: InsumoProject[] = selectedInsumo && !atividade.insumos.find(i => i.id === selectedInsumo.id)
-    ? [selectedInsumo, ...atividade.insumos]
-    : atividade.insumos
-
-  const latestInsumo = allInsumos[0] ?? null
-  const hasContent = !!latestInsumo || !!selectedInsumo
 
   const agente = atividade.agente || 'SCRIBE'
   const accentClass = AGENT_ACCENT[agente] ?? 'card-accent-indigo'
   const agentBadgeClass = AGENT_BADGE[agente] ?? AGENT_BADGE.SCRIBE
 
-  const handleExecute = async () => {
-    if (!atividade.definicoes.length) return
-
-    const definicao = atividade.definicoes[0]
-    const insumosAprovados = atividade.insumos.filter(i => i.status_aprovacao === 'aprovado')
-
-    try {
-      const result = await execute({ projeto, iteracao, atividade, definicao, insumosAprovados })
-
-      await supabase.from('mensagens_agente').insert({
-        iteracao_id: iteracao.id,
-        disciplina: atividade.disciplina,
-        agente: 'SCRIBE',
-        tipo: 'agent',
-        conteudo: result.chatMessage,
-        metadados_json: { atividade_id: atividade.id, insumo_id: result.insumo.id, versao: result.insumo.versao },
-      })
-
-      queryClient.invalidateQueries({ queryKey: ['mensagens', iteracao.id] })
-
-      navigate(`/project/${projeto.id}/${atividade.disciplina}/resultado/${result.insumo.id}`)
-    } catch (err) {
-      console.error('Execute AI error:', err)
-    }
-  }
+  const artefatosAgrupados = groupArtefatosByNome(atividade.artefatos)
+  const hasContent = artefatosAgrupados.length > 0
 
   const progressColor =
     atividade.progresso === 100
@@ -90,6 +82,83 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
       : atividade.progresso >= 50
       ? 'bg-amber-500'
       : 'bg-primary'
+
+  const handleExecuteNovo = async (params: { nome: string; tipo: ArtefatoTipo; configuracao?: ConfiguracaoAtividade; conteudo?: Record<string, unknown> }) => {
+    if (params.tipo === 'link') {
+      try {
+        await createArtefato({
+          iteracao_id: iteracao.id,
+          atividade_id: atividade.id,
+          configuracao_id: atividade.configuracoes[0]?.id ?? null,
+          nome: params.nome,
+          tipo: 'link',
+          conteudo_json: params.conteudo!,
+          status_aprovacao: 'aprovado',
+        })
+        setDialogOpen(false)
+      } catch (err) {
+        console.error('Create link artefato error:', err)
+      }
+      return
+    }
+
+    // tipo === 'texto' — fluxo IA existente
+    if (!atividade.configuracoes.length) return
+    const configuracao = params.configuracao ?? atividade.configuracoes[0]
+    const artefatosAprovados = atividade.artefatos.filter(a => a.status_aprovacao === 'aprovado')
+
+    try {
+      const result = await execute({ projeto, iteracao, atividade, configuracao, nomeArtefato: params.nome, artefatosAprovados })
+      setDialogOpen(false)
+
+      await supabase.from('mensagens_agente').insert({
+        iteracao_id: iteracao.id,
+        disciplina: atividade.disciplina,
+        agente: atividade.agente || 'SCRIBE',
+        tipo: 'agent',
+        conteudo: result.chatMessage,
+        metadados_json: { atividade_id: atividade.id, artefato_id: result.artefato.id, versao: result.artefato.versao },
+      })
+
+      queryClient.invalidateQueries({ queryKey: ['mensagens', iteracao.id] })
+      navigate(`/project/${projeto.id}/${atividade.disciplina}/resultado/${result.artefato.id}`)
+    } catch (err) {
+      console.error('Execute AI error:', err)
+    }
+  }
+
+  const handleReexecutar = async (nomeArtefato: string) => {
+    if (!atividade.configuracoes.length) return
+    const configuracao = atividade.configuracoes[0]
+    const artefatosAprovados = atividade.artefatos.filter(a => a.status_aprovacao === 'aprovado')
+
+    try {
+      const result = await execute({ projeto, iteracao, atividade, configuracao, nomeArtefato, artefatosAprovados })
+
+      await supabase.from('mensagens_agente').insert({
+        iteracao_id: iteracao.id,
+        disciplina: atividade.disciplina,
+        agente: atividade.agente || 'SCRIBE',
+        tipo: 'agent',
+        conteudo: result.chatMessage,
+        metadados_json: { atividade_id: atividade.id, artefato_id: result.artefato.id, versao: result.artefato.versao },
+      })
+
+      queryClient.invalidateQueries({ queryKey: ['mensagens', iteracao.id] })
+      navigate(`/project/${projeto.id}/${atividade.disciplina}/resultado/${result.artefato.id}`)
+    } catch (err) {
+      console.error('Execute AI error:', err)
+    }
+  }
+
+  const handleViewArtefato = (artefato: Artefato) => {
+    if (artefato.tipo === 'link') {
+      const url = artefato.conteudo_json.url as string | undefined
+      if (url) window.open(url, '_blank', 'noopener,noreferrer')
+      return
+    }
+    navigate(`/project/${projeto.id}/${atividade.disciplina}/resultado/${artefato.id}`)
+  }
 
   return (
     <div className={cn(
@@ -120,11 +189,6 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
                 )}>
                   {agente}
                 </span>
-                {latestInsumo && (
-                  <span className="text-[9px] font-mono text-zinc-600 shrink-0">
-                    v{latestInsumo.versao}
-                  </span>
-                )}
               </div>
               {atividade.descricao && (
                 <p className="text-[11px] text-muted-foreground mt-1 leading-snug line-clamp-2 font-normal">
@@ -136,11 +200,11 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
         </div>
 
         {/* Progress row */}
-        {atividade.total_insumos > 0 && (
+        {atividade.total_artefatos > 0 && (
           <div className="mt-3 space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-muted-foreground/70">
-                {atividade.insumos_aprovados}/{atividade.total_insumos} aprovados
+                {atividade.artefatos_aprovados}/{atividade.total_artefatos} aprovados
               </span>
               <span className={cn('text-[10px] font-bold', progressColor)}>
                 {atividade.progresso}%
@@ -156,89 +220,43 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
         )}
 
         {/* Action row */}
-        <div className="flex items-center justify-between mt-3">
-          {/* Left: status badge */}
-          <div>
-            {latestInsumo && (
-              <Badge
-                variant={latestInsumo.status_aprovacao === 'aprovado' ? 'success' : 'outline'}
-                className={cn(
-                  'text-[9px] h-5',
-                  latestInsumo.status_aprovacao !== 'aprovado' && 'text-muted-foreground border-border'
-                )}
-              >
-                {latestInsumo.status_aprovacao === 'aprovado' ? (
-                  <>
-                    <CheckCircle2 className="w-2.5 h-2.5 mr-1" />
-                    Aprovado
-                  </>
-                ) : (
-                  latestInsumo.status_aprovacao === 'rascunho' ? 'Rascunho' :
-                  latestInsumo.status_aprovacao === 'em_revisao' ? 'Em Revisão' : 'Rejeitado'
-                )}
-              </Badge>
+        <div className="flex items-center justify-end mt-3">
+          <Button
+            size="sm"
+            onClick={() => setDialogOpen(true)}
+            disabled={isExecuting}
+            title={
+              isExecuting
+                ? 'Gerando conteúdo...'
+                : 'Criar novo artefato'
+            }
+            className={cn(
+              'h-7 px-2.5 text-[11px] gap-1.5 font-medium',
+              'gradient-primary border-0 text-white',
+              'hover:opacity-90 disabled:opacity-40',
+              'shadow-lg shadow-primary/20'
             )}
-          </div>
-
-          {/* Right: action buttons */}
-          <div className="flex items-center gap-1.5">
-            {hasContent && (selectedInsumo ?? latestInsumo) && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  const insumo = selectedInsumo ?? latestInsumo!
-                  navigate(
-                    `/project/${projeto.id}/${atividade.disciplina}/resultado/${insumo.id}`
-                  )
-                }}
-                className="h-7 px-2.5 text-[11px] gap-1.5 border-border text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <Eye className="w-3 h-3" />
-                Ver resultado
-              </Button>
-            )}
-
-            <Button
-              size="sm"
-              onClick={handleExecute}
-              disabled={isExecuting || !atividade.definicoes.length}
-              title={
-                isExecuting
-                  ? 'Gerando conteúdo...'
-                  : !atividade.definicoes.length
-                    ? 'Desabilitado: esta atividade não tem definição de insumo. Configure em Admin → Definições de insumo.'
-                    : 'Gerar conteúdo com IA usando a definição de insumo desta atividade'
-              }
-              className={cn(
-                'h-7 px-2.5 text-[11px] gap-1.5 font-medium',
-                'gradient-primary border-0 text-white',
-                'hover:opacity-90 disabled:opacity-40',
-                'shadow-lg shadow-primary/20'
-              )}
-            >
-              {isExecuting
-                ? <Loader2 className="w-3 h-3 animate-spin" />
-                : <Sparkles className="w-3 h-3" />
-              }
-              {isExecuting ? 'Gerando...' : 'Executar IA'}
-            </Button>
-          </div>
+          >
+            {isExecuting
+              ? <Loader2 className="w-3 h-3 animate-spin" />
+              : <Plus className="w-3 h-3" />
+            }
+            {isExecuting ? 'Gerando...' : 'Novo Artefato'}
+          </Button>
         </div>
       </div>
 
-      {/* Expand section */}
+      {/* Artefatos list */}
       {hasContent && (
-        <div className={cn(
-          'border-t border-border/60',
-          !expanded && 'bg-card/40'
-        )}>
+        <div className={cn('border-t border-border/60', !expanded && 'bg-card/40')}>
           <button
             onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full text-left px-4 py-2"
           >
             <FileText className="w-3 h-3" />
-            <span className="font-medium">{allInsumos.length} versão(ões) disponível(is)</span>
+            <span className="font-medium">
+              {artefatosAgrupados.length} artefato{artefatosAgrupados.length !== 1 ? 's' : ''}
+            </span>
             {expanded
               ? <ChevronUp className="w-3 h-3 ml-auto" />
               : <ChevronDown className="w-3 h-3 ml-auto" />
@@ -246,40 +264,99 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
           </button>
 
           {expanded && (
-            <div className="px-4 pb-4 space-y-3 animate-fade-in">
-              {/* Version pills */}
-              <div className="flex gap-1.5 flex-wrap">
-                {allInsumos.map((insumo) => (
-                  <button
-                    key={insumo.id}
-                    onClick={() => setSelectedInsumo(insumo)}
-                    className={cn(
-                      'text-[10px] font-mono px-2 py-1 rounded-md border transition-all duration-150',
-                      selectedInsumo?.id === insumo.id
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground hover:border-border/80 hover:text-foreground bg-muted/50'
-                    )}
-                  >
-                    v{insumo.versao}
-                    <span className="ml-1 opacity-60">•</span>
-                    <span className="ml-1">{insumo.status_aprovacao}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="px-4 pb-4 space-y-2 animate-fade-in">
+              {artefatosAgrupados.map(({ nome, latest, versoes }) => {
+                const isLink = latest.tipo === 'link'
+                const linkUrl = isLink ? (latest.conteudo_json.url as string | undefined) : undefined
 
-              {/* Editor */}
-              {selectedInsumo && (
-                <div className="h-80">
-                  <ArtifactEditor
-                    insumo={selectedInsumo}
-                    onClose={() => setSelectedInsumo(null)}
-                  />
-                </div>
-              )}
+                return (
+                  <div
+                    key={nome}
+                    className="flex items-start gap-2 p-2.5 rounded-md bg-muted/40 border border-border/40 hover:bg-muted/60 transition-colors"
+                  >
+                    {/* Status / type icon */}
+                    <div className="shrink-0 mt-0.5">
+                      {latest.status_aprovacao === 'aprovado' && !isLink ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <ArtefatoTypeIcon tipo={latest.tipo ?? 'texto'} />
+                      )}
+                    </div>
+
+                    {/* Name + version info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-medium text-foreground truncate">{nome}</p>
+                      {isLink && linkUrl && (
+                        <p className="text-[10px] text-blue-400/80 truncate mt-0.5">{linkUrl}</p>
+                      )}
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[9px] font-mono text-muted-foreground/60">
+                          v{latest.versao}
+                        </span>
+                        <Badge
+                          variant={latest.status_aprovacao === 'aprovado' ? 'success' : 'outline'}
+                          className={cn(
+                            'text-[8px] h-4 px-1',
+                            latest.status_aprovacao !== 'aprovado' && 'text-muted-foreground border-border'
+                          )}
+                        >
+                          {latest.status_aprovacao === 'aprovado' ? 'Aprovado' :
+                           latest.status_aprovacao === 'rascunho' ? 'Rascunho' :
+                           latest.status_aprovacao === 'em_revisao' ? 'Em Revisão' : 'Rejeitado'}
+                        </Badge>
+                        {versoes.length > 1 && (
+                          <span className="text-[9px] text-muted-foreground/50">
+                            {versoes.length} versões
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleViewArtefato(latest)}
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
+                        title={isLink ? 'Abrir link' : 'Ver resultado'}
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                      {!isLink && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleReexecutar(nome)}
+                          disabled={isExecuting || !atividade.configuracoes.length}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          title="Regenerar com IA"
+                        >
+                          {isExecuting
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <Sparkles className="w-3 h-3" />
+                          }
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
       )}
+
+      {/* Dialog: novo artefato */}
+      <NomeArtefatoDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onConfirm={handleExecuteNovo}
+        isExecuting={isExecuting}
+        iteracaoNome={iteracao.nome}
+        atividadeNome={atividade.nome}
+        configuracoes={atividade.configuracoes}
+      />
     </div>
   )
 }

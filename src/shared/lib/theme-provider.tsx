@@ -11,7 +11,7 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ThemeMode = 'light' | 'dark'
-export type ColorTheme = 'default' | 'slate'
+export type ColorTheme = 'slate' | 'default'
 
 export interface ColorThemeConfig {
   id: ColorTheme

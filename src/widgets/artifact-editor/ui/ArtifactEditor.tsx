@@ -8,10 +8,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import { ScrollArea } from '@/shared/ui/scroll-area'
 import { useUpdateApprovalStatus } from '@/features/manage-artifacts/model/useArtifacts'
 import { cn, formatDateTime } from '@/shared/lib/utils'
-import type { InsumoProject, ApprovalStatus } from '@/entities/artifact/model/types'
+import type { Artefato, ApprovalStatus } from '@/entities/artifact/model/types'
 
 interface ArtifactEditorProps {
-  insumo: InsumoProject
+  artefato: Artefato
   onClose?: () => void
 }
 
@@ -22,20 +22,20 @@ const STATUS_CONFIG: Record<ApprovalStatus, { label: string; className: string }
   rejeitado: { label: 'Rejeitado', className: 'bg-red-500/15 text-red-400 border-red-500/25' },
 }
 
-export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
-  const [activeTab, setActiveTab] = useState<string>(insumo.preferencia_view)
+export function ArtifactEditor({ artefato, onClose }: ArtifactEditorProps) {
+  const [activeTab, setActiveTab] = useState<string>(artefato.preferencia_view)
   const updateStatus = useUpdateApprovalStatus()
-  const statusConfig = STATUS_CONFIG[insumo.status_aprovacao]
+  const statusConfig = STATUS_CONFIG[artefato.status_aprovacao]
 
   const handleStatusUpdate = async (status: ApprovalStatus) => {
     await updateStatus.mutateAsync({
-      insumoId: insumo.id,
+      artefatoId: artefato.id,
       status,
-      iteracaoId: insumo.iteracao_id,
+      iteracaoId: artefato.iteracao_id,
     })
   }
 
-  const conteudo = insumo.conteudo_json as Record<string, unknown>
+  const conteudo = artefato.conteudo_json as Record<string, unknown>
   const markdownText = typeof conteudo?.md === 'string'
     ? conteudo.md
     : null
@@ -47,7 +47,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
         <div className="flex items-center gap-2">
           {/* Version pill */}
           <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/60">
-            v{insumo.versao}
+            v{artefato.versao}
           </span>
 
           {/* Status badge */}
@@ -60,13 +60,13 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
 
           {/* Timestamp */}
           <span className="text-[9px] text-muted-foreground/50 hidden sm:inline">
-            {formatDateTime(insumo.criado_em)}
+            {formatDateTime(artefato.criado_em)}
           </span>
         </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-1">
-          {insumo.status_aprovacao !== 'aprovado' && (
+          {artefato.status_aprovacao !== 'aprovado' && (
             <Button
               size="sm"
               onClick={() => handleStatusUpdate('aprovado')}
@@ -81,7 +81,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
             </Button>
           )}
 
-          {insumo.status_aprovacao === 'aprovado' && (
+          {artefato.status_aprovacao === 'aprovado' && (
             <Button
               size="sm"
               variant="outline"
@@ -94,7 +94,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
             </Button>
           )}
 
-          {insumo.status_aprovacao !== 'rejeitado' && insumo.status_aprovacao !== 'aprovado' && (
+          {artefato.status_aprovacao !== 'rejeitado' && artefato.status_aprovacao !== 'aprovado' && (
             <Button
               size="sm"
               variant="outline"
@@ -175,7 +175,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
               </div>
             ) : (
               <pre className="text-[10px] text-muted-foreground font-mono leading-relaxed bg-muted/40 border border-border/40 rounded-lg p-4 overflow-auto">
-                {JSON.stringify(insumo.conteudo_json, null, 2)}
+                {JSON.stringify(artefato.conteudo_json, null, 2)}
               </pre>
             )}
           </ScrollArea>
@@ -184,7 +184,7 @@ export function ArtifactEditor({ insumo, onClose }: ArtifactEditorProps) {
         <TabsContent value="rawjson" className="flex-1 overflow-hidden mt-0 p-3">
           <ScrollArea className="h-full">
             <pre className="text-[10px] text-muted-foreground font-mono leading-relaxed bg-muted/40 border border-border/40 rounded-lg p-4 overflow-auto whitespace-pre-wrap">
-              {markdownText ?? JSON.stringify(insumo.conteudo_json, null, 2)}
+              {markdownText ?? JSON.stringify(artefato.conteudo_json, null, 2)}
             </pre>
           </ScrollArea>
         </TabsContent>

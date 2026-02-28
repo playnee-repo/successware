@@ -8,7 +8,15 @@
       "Bash(head:*)",
       "Bash(cd C:\\\\Users\\\\micha\\\\Documents\\\\git\\\\prd-v2:*)",
       "Bash(cd \"C:\\\\Users\\\\micha\\\\Documents\\\\git\\\\prd-v2\" && npx tsc --noEmit 2>&1)",
-      "Bash(supabase db:*)"
+      "Bash(supabase db:*)",
+      "Bash(cd \"C:\\\\Users\\\\micha\\\\Documents\\\\git\\\\prd-v2\" && npx supabase db reset 2>&1)",
+      "Bash(tail:*)",
+      "Bash(cd \"C:\\\\Users\\\\micha\\\\Documents\\\\git\\\\prd-v2\" && npx supabase status 2>&1)",
+      "Bash(echo EXIT: $?:*)",
+      "Bash(grep:*)",
+      "Bash(cd /c/Users/micha/Documents/git/prd-v2 && npm run build 2>&1)",
+      "Bash(node:*)",
+      "Bash(cd C:/Users/micha/Documents/git/prd-v2 && npm run build 2>&1)"
     ]
   }
 }

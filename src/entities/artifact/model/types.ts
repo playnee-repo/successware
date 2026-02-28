@@ -1,5 +1,6 @@
 export type ApprovalStatus = 'rascunho' | 'em_revisao' | 'aprovado' | 'rejeitado'
 export type ViewPreference = 'visual' | 'rawjson'
+export type ArtefatoTipo = 'texto' | 'link' | 'documento'
 export type DefaultDisciplina = 'descoberta' | 'requisitos' | 'arquitetura' | 'construcao' | 'qualidade'
 export type Disciplina = string
 
@@ -14,21 +15,26 @@ export interface Atividade {
   criado_em: string
 }
 
-export interface DefinicaoInsumo {
+export interface ConfiguracaoAtividade {
   id: string
   atividade_id: string
+  nome: string
   tipo_insumo: string
   agente_responsavel: string
-  schema_metadado_json: Record<string, unknown> | null
   prompt_template: string | null
   criado_em: string
 }
 
-export interface InsumoProject {
+/** @deprecated Use ConfiguracaoAtividade instead */
+export type DefinicaoInsumo = ConfiguracaoAtividade
+
+export interface Artefato {
   id: string
   iteracao_id: string
   atividade_id: string
-  definicao_id: string
+  configuracao_id: string | null
+  nome: string
+  tipo: ArtefatoTipo
   conteudo_json: Record<string, unknown>
   versao: number
   agente_autor: string
@@ -38,12 +44,15 @@ export interface InsumoProject {
   atualizado_em: string
 }
 
+/** @deprecated Use Artefato instead */
+export type InsumoProject = Artefato
+
 export interface AtividadeComProgresso extends Atividade {
-  definicoes: DefinicaoInsumo[]
-  insumos: InsumoProject[]
+  configuracoes: ConfiguracaoAtividade[]
+  artefatos: Artefato[]
   progresso: number  // 0-100%
-  total_insumos: number
-  insumos_aprovados: number
+  total_artefatos: number
+  artefatos_aprovados: number
 }
 
 export const DISCIPLINA_LABELS: Record<string, string> = {

@@ -1,20 +1,20 @@
 export type AgentType = string
 export type MessageType = 'user' | 'agent' | 'system' | 'action'
 
-/** Contexto atual da tela para o chat (projeto, disciplina, resultado/insumo). */
+/** Contexto atual da tela para o chat (projeto, disciplina, resultado/artefato). */
 export interface ChatContext {
   projectId?: string
   projectName?: string
   disciplina?: string
-  /** Onde o usuário está: lista do projeto ou tela de resultado de um insumo. */
+  /** Onde o usuário está: lista do projeto ou tela de resultado de um artefato. */
   route: 'project' | 'resultado'
   /** Preenchido quando route === 'resultado'. */
-  insumoId?: string
-  insumoName?: string
-  /** Resumo curto para o agente (ex.: "Diagrama de Contexto v1"). */
-  insumoSummary?: string
-  /** Conteúdo atual do insumo (resumo em texto) para o agente sugerir melhorias. Só na tela de resultado. */
-  insumoContentPreview?: string
+  artefatoId?: string
+  artefatoName?: string
+  /** Resumo curto para o agente (ex.: "Épico: Autenticação v1"). */
+  artefatoSummary?: string
+  /** Conteúdo atual do artefato (resumo em texto) para o agente sugerir melhorias. Só na tela de resultado. */
+  artefatoContentPreview?: string
 }
 
 export interface AgentMessage {

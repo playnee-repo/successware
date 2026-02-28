@@ -100,7 +100,7 @@ export function useRenameAgente() {
 
       // 3. Update references in related tables
       await supabase.from('atividades').update({ agente: newId }).eq('agente', oldId)
-      await supabase.from('definicoes_insumos').update({ agente_responsavel: newId }).eq('agente_responsavel', oldId)
+      await supabase.from('configuracoes_atividade').update({ agente_responsavel: newId }).eq('agente_responsavel', oldId)
 
       // 4. Delete old row
       const { error: delErr } = await supabase.from('agentes_config').delete().eq('id', oldId)
@@ -109,7 +109,7 @@ export function useRenameAgente() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK })
       qc.invalidateQueries({ queryKey: ['admin', 'atividades'] })
-      qc.invalidateQueries({ queryKey: ['admin', 'definicoes'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'configuracoes'] })
     },
   })
 }

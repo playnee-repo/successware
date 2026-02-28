@@ -48,9 +48,9 @@ function getAgentReply(
         projectName: chatContext.projectName,
         disciplina: chatContext.disciplina,
         route: chatContext.route,
-        insumoName: chatContext.insumoName,
-        insumoSummary: chatContext.insumoSummary,
-        insumoContentPreview: chatContext.insumoContentPreview,
+        insumoName: chatContext.artefatoName,
+        insumoSummary: chatContext.artefatoSummary,
+        insumoContentPreview: chatContext.artefatoContentPreview,
       })
     : ''
   const basePrompt = agentConfig?.chat_system_prompt ?? FALLBACK_CHAT_SYSTEM_PROMPT
@@ -191,8 +191,8 @@ function contextSummary(ctx: ChatContext): string {
     const d = ctx.disciplina === 'requisitos' ? 'Requisitos' : ctx.disciplina
     parts.push(d)
   }
-  if (ctx.route === 'resultado' && (ctx.insumoName || ctx.insumoSummary)) {
-    parts.push(ctx.insumoName ?? ctx.insumoSummary ?? 'Resultado')
+  if (ctx.route === 'resultado' && (ctx.artefatoName || ctx.artefatoSummary)) {
+    parts.push(ctx.artefatoName ?? ctx.artefatoSummary ?? 'Resultado')
   }
   return parts.join(' · ')
 }

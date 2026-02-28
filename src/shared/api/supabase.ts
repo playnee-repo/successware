@@ -64,28 +64,30 @@ export type Database = {
         }
         Update: Partial<Database['public']['Tables']['atividades']['Insert']>
       }
-      definicoes_insumos: {
+      configuracoes_atividade: {
         Row: {
           id: string
           atividade_id: string
+          nome: string
           tipo_insumo: string
           agente_responsavel: string
-          schema_metadado_json: Record<string, unknown> | null
           prompt_template: string | null
           criado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['definicoes_insumos']['Row'], 'id' | 'criado_em'> & {
+        Insert: Omit<Database['public']['Tables']['configuracoes_atividade']['Row'], 'id' | 'criado_em'> & {
           id?: string
           criado_em?: string
         }
-        Update: Partial<Database['public']['Tables']['definicoes_insumos']['Insert']>
+        Update: Partial<Database['public']['Tables']['configuracoes_atividade']['Insert']>
       }
-      insumos_projeto: {
+      artefatos: {
         Row: {
           id: string
           iteracao_id: string
           atividade_id: string
-          definicao_id: string
+          configuracao_id: string | null
+          nome: string
+          tipo: 'texto' | 'link' | 'documento'
           conteudo_json: Record<string, unknown>
           versao: number
           agente_autor: string
@@ -94,12 +96,12 @@ export type Database = {
           criado_em: string
           atualizado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['insumos_projeto']['Row'], 'id' | 'criado_em' | 'atualizado_em'> & {
+        Insert: Omit<Database['public']['Tables']['artefatos']['Row'], 'id' | 'criado_em' | 'atualizado_em'> & {
           id?: string
           criado_em?: string
           atualizado_em?: string
         }
-        Update: Partial<Database['public']['Tables']['insumos_projeto']['Insert']>
+        Update: Partial<Database['public']['Tables']['artefatos']['Insert']>
       }
       mensagens_agente: {
         Row: {

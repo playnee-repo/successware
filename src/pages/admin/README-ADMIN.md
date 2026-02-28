@@ -4,7 +4,7 @@
 
 - **Disciplina**: agrupa N atividades (ex.: DESCOBERTA, ENG. REQUISITOS).
 - **Atividade**: pertence a uma disciplina; tem nome, descrição, agente, ordem (ex.: Briefing Inicial, User Stories).
-- **Definição de insumo**: template vinculado a uma atividade (tipo, schema JSON, prompt para a IA). Uma atividade pode ter uma ou mais definições.
+- **Definição de insumo**: template vinculado a uma atividade (tipo, prompt para a IA). Uma atividade pode ter uma ou mais definições.
 
 No banco: `atividades` (por disciplina), `definicoes_insumos` (por atividade). Os **insumos do projeto** (`insumos_projeto`) são as instâncias por iteração e não são editados no admin.
 
@@ -27,7 +27,7 @@ No banco: `atividades` (por disciplina), `definicoes_insumos` (por atividade). O
 | Ação | Onde |
 |------|------|
 | **Criar definição** | Apenas **“Nova definição”** (com uma atividade selecionada na lista). |
-| **Editar definição** | Selecionar atividade → abas por definição → editor à direita (tipo, agente, schema, prompt) → Salvar. |
+| **Editar definição** | Selecionar atividade → abas por definição → editor à direita (tipo, agente, prompt) → Salvar. |
 | **Excluir definição** | Ícone de lixeira no cabeçalho do editor. |
 
 ---

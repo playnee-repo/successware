@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
     element: <ProjectPage />,
   },
   {
-    path: '/project/:projectId/:disciplina/resultado/:insumoId',
+    path: '/project/:projectId/:disciplina/resultado/:artefatoId',
     element: <ResultadoPage />,
   },
   {

@@ -36,15 +36,16 @@ insert into atividades (id, disciplina, nome, descricao, agente, ordem, icone) v
   ('a5000001-0000-0000-0000-000000000003', 'qualidade', 'Revisão de Segurança', 'Análise de vulnerabilidades e práticas de segurança', 'GUARDIAN', 3, 'Shield');
 
 -- ============================================================
--- DEFINIÇÕES DE INSUMOS (templates de output por atividade)
+-- CONFIGURAÇÕES DE ATIVIDADE (templates de output por atividade)
 -- Formato: Markdown estruturado (sincronizado com definicoes-templates.ts)
 -- ============================================================
 
 -- DESCOBERTA: Briefing Inicial
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd1000001-0000-0000-0000-000000000001',
     'a1000001-0000-0000-0000-000000000001',
+    'Briefing Inicial',
     'briefing',
     'SCRIBE',
     '{"type": "object"}',
@@ -92,10 +93,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- DESCOBERTA: Análise de Stakeholders
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd1000002-0000-0000-0000-000000000001',
     'a1000001-0000-0000-0000-000000000002',
+    'Análise de Stakeholders',
     'stakeholders',
     'SCRIBE',
     '{"type": "object"}',
@@ -132,10 +134,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- DESCOBERTA: Benchmarking
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd1000003-0000-0000-0000-000000000001',
     'a1000001-0000-0000-0000-000000000003',
+    'Benchmarking',
     'benchmarking',
     'SCRIBE',
     '{"type": "object"}',
@@ -181,10 +184,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: Elicitação de Requisitos
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd2000001-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000001',
+    'Requisitos Funcionais',
     'requisitos_funcionais',
     'SCRIBE',
     '{"type": "object"}',
@@ -225,10 +229,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: Prototipação de Interface
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd2000002-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000002',
+    'Prototipação de Interface',
     'prototipacao',
     'SCRIBE',
     '{"type": "object"}',
@@ -269,10 +274,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: Critérios de Aceitação
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd2000003-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000003',
+    'Critérios de Aceitação',
     'criterios_aceitacao',
     'SCRIBE',
     '{"type": "object"}',
@@ -312,10 +318,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: User Stories
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd2000004-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000004',
+    'User Stories',
     'user_stories',
     'SCRIBE',
     '{"type": "object"}',
@@ -350,10 +357,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- ARQUITETURA: Diagrama de Contexto
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd3000001-0000-0000-0000-000000000001',
     'a3000001-0000-0000-0000-000000000001',
+    'Diagrama de Contexto',
     'diagrama_contexto',
     'ARCH',
     '{"type": "object"}',
@@ -403,10 +411,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- ARQUITETURA: Modelo de Dados
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd3000002-0000-0000-0000-000000000001',
     'a3000001-0000-0000-0000-000000000002',
+    'Modelo de Dados',
     'modelo_dados',
     'ARCH',
     '{"type": "object"}',
@@ -451,10 +460,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- ARQUITETURA: Stack Tecnológico
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd3000003-0000-0000-0000-000000000001',
     'a3000001-0000-0000-0000-000000000003',
+    'Stack Tecnológico',
     'stack',
     'ARCH',
     '{"type": "object"}',
@@ -500,10 +510,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- CONSTRUÇÃO: Setup do Ambiente
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd4000001-0000-0000-0000-000000000001',
     'a4000001-0000-0000-0000-000000000001',
+    'Setup do Ambiente',
     'setup',
     'FORGE',
     '{"type": "object"}',
@@ -562,10 +573,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- CONSTRUÇÃO: Implementação Core
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd4000002-0000-0000-0000-000000000001',
     'a4000001-0000-0000-0000-000000000002',
+    'Implementação Core',
     'implementacao',
     'FORGE',
     '{"type": "object"}',
@@ -618,10 +630,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- CONSTRUÇÃO: Integração de APIs
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd4000003-0000-0000-0000-000000000001',
     'a4000001-0000-0000-0000-000000000003',
+    'Integração de APIs',
     'apis',
     'FORGE',
     '{"type": "object"}',
@@ -672,10 +685,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- QUALIDADE: Plano de Testes
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd5000001-0000-0000-0000-000000000001',
     'a5000001-0000-0000-0000-000000000001',
+    'Plano de Testes',
     'plano_testes',
     'GUARDIAN',
     '{"type": "object"}',
@@ -725,10 +739,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- QUALIDADE: Testes de Aceitação
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd5000002-0000-0000-0000-000000000001',
     'a5000001-0000-0000-0000-000000000002',
+    'Testes de Aceitação',
     'testes_aceitacao',
     'GUARDIAN',
     '{"type": "object"}',
@@ -768,10 +783,11 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- QUALIDADE: Revisão de Segurança
-insert into definicoes_insumos (id, atividade_id, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
   (
     'd5000003-0000-0000-0000-000000000001',
     'a5000001-0000-0000-0000-000000000003',
+    'Revisão de Segurança',
     'revisao_seguranca',
     'GUARDIAN',
     '{"type": "object"}',
