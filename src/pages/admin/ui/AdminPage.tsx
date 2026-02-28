@@ -67,7 +67,7 @@ const DISCIPLINA_COLOR_MAP: Record<string, { text: string; dot: string; bg: stri
 const DISC_FALLBACK = { text: 'text-muted-foreground', dot: 'bg-muted-foreground', bg: 'bg-muted/30', border: 'border-border', accent: '' }
 function getDisciplinaColor(d: string) { return DISCIPLINA_COLOR_MAP[d] ?? DISC_FALLBACK }
 
-const KNOWN_VARS = ['projeto_nome', 'iteracao_modulo', 'contexto']
+const KNOWN_VARS = ['projeto_nome', 'iteracao_modulo', 'contexto', 'documentos']
 
 // ─── Info Tooltip (ícone i com explicação) ─────────────────────────────────
 
@@ -978,7 +978,7 @@ function DefinicaoEditor({
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
             Prompt Template
-            <InfoTooltip content="Para que serve: O texto enviado à IA ao gerar o artefato. Use {{projeto_nome}}, {{iteracao_modulo}}, {{contexto}} para inserir dados do projeto e artefatos aprovados.\n\nOnde aparece: Usado na geração “Texto IA” quando o usuário escolhe esta configuração ao criar um artefato." />
+            <InfoTooltip content="Para que serve: O texto enviado à IA ao gerar o artefato. Use {{projeto_nome}}, {{iteracao_modulo}}, {{contexto}} para inserir dados do projeto, documentos e artefatos aprovados. Use {{documentos}} para injetar apenas os documentos do projeto separadamente.\n\nOnde aparece: Usado na geração “Texto IA” quando o usuário escolhe esta configuração ao criar um artefato." />
           </label>
           <Textarea
             value={promptTemplate}

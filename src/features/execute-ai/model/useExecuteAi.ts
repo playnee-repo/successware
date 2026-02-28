@@ -65,11 +65,15 @@ Projeto: {{projeto_nome}} | Módulo: {{iteracao_modulo}}
 {{contexto}}
 Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
 
+  // {{contexto}} recebe documentos + artefatos aprovados (todos os templates existentes usam {{contexto}})
+  // {{documentos}} fica disponível para templates que queiram separar as duas fontes de contexto
+  const contextoCompleto = [contextDocumentos, contextAprovados].filter(Boolean).join('\n\n')
+
   const prompt = buildPrompt(template, {
     projeto_nome: projeto.nome,
     iteracao_modulo: iteracao.modulo_foco || iteracao.nome,
     documentos: contextDocumentos,
-    contexto: contextAprovados,
+    contexto: contextoCompleto,
   })
 
   // 4. Buscar config do agente responsável no DB
