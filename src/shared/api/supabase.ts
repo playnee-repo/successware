@@ -50,10 +50,11 @@ export type Database = {
           criado_em: string
           atualizado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['projetos']['Row'], 'id' | 'criado_em' | 'atualizado_em'> & {
+        Insert: Omit<Database['public']['Tables']['projetos']['Row'], 'id' | 'criado_em' | 'atualizado_em' | 'empresa_id'> & {
           id?: string
           criado_em?: string
           atualizado_em?: string
+          empresa_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['projetos']['Insert']>
       }
@@ -69,10 +70,11 @@ export type Database = {
           criado_em: string
           atualizado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['iteracoes']['Row'], 'id' | 'criado_em' | 'atualizado_em'> & {
+        Insert: Omit<Database['public']['Tables']['iteracoes']['Row'], 'id' | 'criado_em' | 'atualizado_em' | 'empresa_id'> & {
           id?: string
           criado_em?: string
           atualizado_em?: string
+          empresa_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['iteracoes']['Insert']>
       }
@@ -126,10 +128,11 @@ export type Database = {
           criado_em: string
           atualizado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['artefatos']['Row'], 'id' | 'criado_em' | 'atualizado_em'> & {
+        Insert: Omit<Database['public']['Tables']['artefatos']['Row'], 'id' | 'criado_em' | 'atualizado_em' | 'empresa_id'> & {
           id?: string
           criado_em?: string
           atualizado_em?: string
+          empresa_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['artefatos']['Insert']>
       }
@@ -145,9 +148,10 @@ export type Database = {
           empresa_id: string | null
           criado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['mensagens_agente']['Row'], 'id' | 'criado_em'> & {
+        Insert: Omit<Database['public']['Tables']['mensagens_agente']['Row'], 'id' | 'criado_em' | 'empresa_id'> & {
           id?: string
           criado_em?: string
+          empresa_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['mensagens_agente']['Insert']>
       }
@@ -163,10 +167,11 @@ export type Database = {
           criado_em: string
           atualizado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['documentos_projeto']['Row'], 'id' | 'criado_em' | 'atualizado_em'> & {
+        Insert: Omit<Database['public']['Tables']['documentos_projeto']['Row'], 'id' | 'criado_em' | 'atualizado_em' | 'empresa_id'> & {
           id?: string
           criado_em?: string
           atualizado_em?: string
+          empresa_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['documentos_projeto']['Insert']>
       }
