@@ -400,16 +400,40 @@ export function ActivityGrid({ atividades, projeto, iteracao, isLoading }: Activ
     )
   }
 
+  const totalArtefatos = atividades.reduce((sum, a) => sum + a.total_artefatos, 0)
+  const primeiraAtividade = atividades[0]
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {atividades.map(atividade => (
-        <ActivityCard
-          key={atividade.id}
-          atividade={atividade}
-          projeto={projeto}
-          iteracao={iteracao}
-        />
-      ))}
+    <div className="space-y-4">
+      {/* Banner "comece aqui" — aparece quando nenhum artefato foi criado ainda */}
+      {totalArtefatos === 0 && (
+        <div className="flex items-start gap-4 px-5 py-4 rounded-xl border border-primary/20 bg-primary/5 ring-1 ring-primary/10">
+          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0 ring-inset-subtle mt-0.5">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Por onde começar</p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              Clique em{' '}
+              <span className="font-semibold text-foreground">+ Novo Artefato</span>{' '}
+              em{' '}
+              <span className="font-semibold text-foreground">"{primeiraAtividade.nome}"</span>{' '}
+              — a IA vai gerar o documento para você em segundos.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {atividades.map(atividade => (
+          <ActivityCard
+            key={atividade.id}
+            atividade={atividade}
+            projeto={projeto}
+            iteracao={iteracao}
+          />
+        ))}
+      </div>
     </div>
   )
 }

@@ -27,6 +27,7 @@ import { ThemeSelector } from '@/shared/ui/theme-selector'
 import { cn, formatDate } from '@/shared/lib/utils'
 import type { Project, ProjectStatus, ProjectTipo } from '@/entities/project/model/types'
 import { useProjectProgress, calcularProgressoGlobal } from '@/entities/project/model/useProjectProgress'
+import { useOnboarding } from '@/features/onboarding/model/useOnboarding'
 
 const STATUS_CONFIG: Record<ProjectStatus, { label: string; variant: 'success' | 'warning' | 'secondary' | 'outline' }> = {
   ativo: { label: 'Ativo', variant: 'success' },
@@ -223,6 +224,128 @@ const TIPO_OPTIONS: { value: ProjectTipo; label: string; emoji: string }[] = [
   { value: 'sistema_interno', label: 'Sistema Interno', emoji: '🏢' },
   { value: 'outro', label: 'Outro', emoji: '✨' },
 ]
+
+interface OnboardingWizardProps {
+  onManual: () => void
+}
+
+function OnboardingWizard({ onManual }: OnboardingWizardProps) {
+  const [ideia, setIdeia] = useState('')
+  const [tipo, setTipo] = useState<ProjectTipo>('outro')
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const onboarding = useOnboarding()
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!ideia.trim()) return
+    setError(null)
+    try {
+      const projeto = await onboarding.mutateAsync({ ideia: ideia.trim(), tipo })
+      navigate(`/project/${projeto.id}/descoberta`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar projeto')
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-10">
+      {/* Header */}
+      <div className="text-center max-w-sm">
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center glow-primary ring-inset-subtle">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+        </div>
+        <h2 className="text-xl font-black text-foreground tracking-tight">
+          Bem-vindo ao SDLC Copilot
+        </h2>
+        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+          Descreva sua ideia. A IA estrutura o projeto, cria a primeira iteração e te guia pelo processo — do jeito certo.
+        </p>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-5">
+        {/* Ideia */}
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
+            Qual é a sua ideia?
+          </label>
+          <textarea
+            value={ideia}
+            onChange={e => setIdeia(e.target.value)}
+            placeholder="Ex: Um app para dividir despesas entre amigos de forma simples e visual"
+            rows={3}
+            disabled={onboarding.isPending}
+            className="w-full rounded-xl border border-input bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none transition-colors"
+          />
+        </div>
+
+        {/* Tipo */}
+        <div>
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
+            Tipo de projeto
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {TIPO_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                disabled={onboarding.isPending}
+                onClick={() => setTipo(opt.value)}
+                className={cn(
+                  'flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-medium transition-all',
+                  tipo === opt.value
+                    ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary/30'
+                    : 'border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground'
+                )}
+              >
+                <span className="text-base">{opt.emoji}</span>
+                <span className="text-center leading-tight">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
+
+        {/* Submit */}
+        <Button
+          type="submit"
+          disabled={!ideia.trim() || onboarding.isPending}
+          className="w-full h-11 text-sm gap-2 gradient-primary border-0 text-white hover:opacity-90 shadow-lg shadow-primary/20 font-semibold"
+        >
+          {onboarding.isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Estruturando com IA...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              Criar projeto com IA
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </Button>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Prefere configurar manualmente?{' '}
+          <button
+            type="button"
+            onClick={onManual}
+            className="text-primary hover:underline font-medium"
+          >
+            Criar projeto
+          </button>
+        </p>
+      </form>
+    </div>
+  )
+}
 
 export function DashboardPage() {
   const [showNew, setShowNew] = useState(false)
@@ -423,29 +546,7 @@ export function DashboardPage() {
               ))}
             </div>
           ) : projects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-5">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-2xl bg-card border border-border flex items-center justify-center ring-inset-subtle">
-                  <FolderOpen className="w-9 h-9 text-muted-foreground" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg gradient-primary flex items-center justify-center ring-inset-subtle">
-                  <Plus className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-bold text-foreground">Nenhum projeto ainda</p>
-                <p className="text-xs text-muted-foreground mt-1.5 max-w-xs leading-relaxed">
-                  Crie seu primeiro projeto para começar a usar os agentes de IA do SDLC Copilot.
-                </p>
-              </div>
-              <Button
-                onClick={() => setShowNew(true)}
-                className="h-9 px-4 text-sm gap-2 gradient-primary border-0 text-white hover:opacity-90 shadow-lg shadow-primary/20 font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                Criar Primeiro Projeto
-              </Button>
-            </div>
+            <OnboardingWizard onManual={() => setShowNew(true)} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {projects.map(project => (
