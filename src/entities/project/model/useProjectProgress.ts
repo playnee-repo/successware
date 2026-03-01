@@ -22,8 +22,7 @@ export function useProjectProgress(projectId: string) {
 }
 
 export function calcularProgressoGlobal(disciplinas: DisciplinaProgresso[]): number {
-  const comAtividade = disciplinas.filter(d => d.total_artefatos > 0)
-  if (!comAtividade.length) return 0
-  const soma = comAtividade.reduce((acc, d) => acc + d.progresso, 0)
-  return Math.round(soma / comAtividade.length)
+  if (!disciplinas.length) return 0
+  const soma = disciplinas.reduce((acc, d) => acc + d.progresso, 0)
+  return Math.round(soma / disciplinas.length)
 }
