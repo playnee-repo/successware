@@ -35,31 +35,31 @@ function useMembros() {
   })
 }
 
-function useAdicionarMembro() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ email, password, role }: { email: string; password: string; role: string }) => {
-      // Cria o usuário com um cliente temporário (não afeta a sessão do admin)
-      const tempClient = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_ANON_KEY,
-        { auth: { storageKey: 'temp-member-signup', persistSession: false } }
-      )
-
-      const { data, error } = await tempClient.auth.signUp({ email, password })
-      if (error || !data.user) throw new Error(error?.message ?? 'Erro ao criar usuário')
-
-      const userId = data.user.id
-      await tempClient.auth.signOut()
-
-      const { error: rpcError } = await supabase.rpc('adicionar_membro', {
-        p_user_id: userId,
-        p_role: role,
-      })
-      if (rpcError) throw new Error(rpcError.message)
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['membros'] }),
+// Retorna 'ok' | 'not_found'
+async function tentarAdicionarPorEmail(email: string, role: string): Promise<'ok' | 'not_found'> {
+  const { data, error } = await supabase.rpc('adicionar_membro_por_email', {
+    p_email: email,
+    p_role: role,
   })
+  if (error) throw new Error(error.message)
+  return data as 'ok' | 'not_found'
+}
+
+async function criarContaEAdicionar(email: string, password: string, role: string) {
+  const tempClient = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY,
+    { auth: { storageKey: 'temp-member-signup', persistSession: false } }
+  )
+  const { data, error } = await tempClient.auth.signUp({ email, password })
+  if (error || !data.user) throw new Error(error?.message ?? 'Erro ao criar usuário')
+  await tempClient.auth.signOut()
+
+  const { error: rpcError } = await supabase.rpc('adicionar_membro', {
+    p_user_id: data.user.id,
+    p_role: role,
+  })
+  if (rpcError) throw new Error(rpcError.message)
 }
 
 function useRemoverMembro() {
@@ -91,27 +91,50 @@ export function MembrosPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { data: membros = [], isLoading } = useMembros()
-  const adicionarMembro = useAdicionarMembro()
   const removerMembro = useRemoverMembro()
   const atualizarRole = useAtualizarRole()
+  const qc = useQueryClient()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<'membro' | 'admin'>('membro')
+  const [needsPassword, setNeedsPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+
+  function resetDialog() {
+    setEmail('')
+    setPassword('')
+    setRole('membro')
+    setNeedsPassword(false)
+    setFormError(null)
+    setDialogOpen(false)
+  }
 
   async function handleAdicionar(e: React.FormEvent) {
     e.preventDefault()
     setFormError(null)
+    setLoading(true)
     try {
-      await adicionarMembro.mutateAsync({ email, password, role })
-      setEmail('')
-      setPassword('')
-      setRole('membro')
-      setDialogOpen(false)
+      if (needsPassword) {
+        // Usuário não existe — criar conta com senha fornecida
+        await criarContaEAdicionar(email, password, role)
+      } else {
+        // Tenta pelo email primeiro
+        const resultado = await tentarAdicionarPorEmail(email, role)
+        if (resultado === 'not_found') {
+          setNeedsPassword(true)
+          setLoading(false)
+          return
+        }
+      }
+      qc.invalidateQueries({ queryKey: ['membros'] })
+      resetDialog()
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Erro ao adicionar membro')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -220,12 +243,14 @@ export function MembrosPage() {
       </div>
 
       {/* Dialog — adicionar membro */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetDialog(); else setDialogOpen(true) }}>
         <DialogContent className="max-w-sm bg-card border-border">
           <DialogHeader>
             <DialogTitle className="text-foreground">Adicionar membro</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Crie uma conta para o novo membro da equipe.
+              {needsPassword
+                ? 'Usuário não encontrado. Defina uma senha para criar a conta.'
+                : 'Informe o email do membro. Se já tiver conta, será adicionado diretamente.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -235,25 +260,31 @@ export function MembrosPage() {
               <Input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={e => { setEmail(e.target.value); setNeedsPassword(false) }}
                 placeholder="colega@email.com"
                 required
                 autoComplete="off"
+                disabled={needsPassword}
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Senha inicial</label>
-              <Input
-                type="text"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                required
-                minLength={6}
-                autoComplete="off"
-              />
-              <p className="text-[11px] text-muted-foreground">O membro poderá trocar a senha depois.</p>
-            </div>
+
+            {needsPassword && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Senha inicial</label>
+                <Input
+                  type="text"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                  minLength={6}
+                  autoComplete="off"
+                  autoFocus
+                />
+                <p className="text-[11px] text-muted-foreground">O membro poderá trocar a senha depois.</p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Papel</label>
               <Select value={role} onValueChange={(v) => setRole(v as 'membro' | 'admin')}>
@@ -284,7 +315,7 @@ export function MembrosPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setDialogOpen(false)}
+                onClick={resetDialog}
                 className="border-border"
               >
                 Cancelar
@@ -292,12 +323,12 @@ export function MembrosPage() {
               <Button
                 type="submit"
                 size="sm"
-                disabled={adicionarMembro.isPending}
+                disabled={loading}
                 className="gradient-primary border-0 text-white hover:opacity-90"
               >
-                {adicionarMembro.isPending
+                {loading
                   ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  : 'Adicionar'}
+                  : needsPassword ? 'Criar e adicionar' : 'Adicionar'}
               </Button>
             </DialogFooter>
           </form>
