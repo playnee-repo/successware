@@ -5,6 +5,7 @@ import { ResultadoPage } from '@/pages/resultado/ui/ResultadoPage'
 import { AdminPage } from '@/pages/admin/ui/AdminPage'
 import { DocumentosPage } from '@/pages/documentos/ui/DocumentosPage'
 import { LoginPage } from '@/pages/login/ui/LoginPage'
+import { MembrosPage } from '@/pages/membros/ui/MembrosPage'
 import { ProtectedRoute, PermissionRoute } from './ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
         element: <PermissionRoute permission="ver_admin" />,
         children: [
           { path: '/admin', element: <AdminPage /> },
+          { path: '/membros', element: <MembrosPage /> },
         ],
       },
     ],

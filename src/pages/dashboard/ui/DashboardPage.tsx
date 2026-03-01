@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ArrowRight, Loader2, FolderOpen,
-  Building2, Calendar, Activity, Zap, GitBranch, Sparkles, LogOut, User
+  Building2, Calendar, Activity, Zap, GitBranch, Sparkles, LogOut, User, Users
 } from 'lucide-react'
 import { supabase } from '@/shared/api/supabase'
 import { useAuth } from '@/shared/auth'
@@ -156,6 +156,7 @@ export function DashboardPage() {
   const createProject = useCreateProject()
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
+  const isAdmin = user?.role === 'admin'
 
   const activeProjects = projects.filter(p => p.status === 'ativo').length
   const totalProjects = projects.length
@@ -210,6 +211,15 @@ export function DashboardPage() {
                   {user?.email}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-border" />
+                {isAdmin && (
+                  <DropdownMenuItem
+                    className="gap-2 text-xs cursor-pointer hover:bg-accent focus:bg-accent"
+                    onClick={() => navigate('/membros')}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    Gerenciar membros
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="gap-2 text-xs cursor-pointer text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
                   onClick={() => signOut().then(() => navigate('/login'))}
