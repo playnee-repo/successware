@@ -74,8 +74,13 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
       <Sidebar iteracao={iteracao} progresso={progresso} />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {children}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {children}
+        </div>
+        {projeto && (
+          <AdvisorWidget projeto={projeto} disciplinaAtual={disciplina} />
+        )}
       </div>
 
       {/* Resize handle */}
@@ -90,11 +95,6 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
           <GripVertical className="w-3 h-3 text-muted-foreground" />
         </div>
       </div>
-
-      {/* ADVISOR floating widget */}
-      {projeto && (
-        <AdvisorWidget projeto={projeto} disciplinaAtual={disciplina} />
-      )}
 
       {/* Agent Chat Panel */}
       <div

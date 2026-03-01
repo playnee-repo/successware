@@ -50,7 +50,7 @@ export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) 
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2 pointer-events-none">
+    <div className="absolute bottom-5 right-5 z-50 flex flex-col items-end gap-2 pointer-events-none">
       {/* Card expandido */}
       {expanded && (
         <div className="w-72 bg-card border border-border rounded-2xl shadow-2xl shadow-black/25 overflow-hidden pointer-events-auto">
