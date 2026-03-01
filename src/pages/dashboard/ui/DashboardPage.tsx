@@ -3,10 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ArrowRight, Loader2, FolderOpen,
-  Building2, Calendar, Activity, Zap, GitBranch, Sparkles
+  Building2, Calendar, Activity, Zap, GitBranch, Sparkles, LogOut, User
 } from 'lucide-react'
 import { supabase } from '@/shared/api/supabase'
 import { useAuth } from '@/shared/auth'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger
+} from '@/shared/ui/dropdown-menu'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
@@ -151,6 +155,7 @@ export function DashboardPage() {
   const { data: projects = [], isLoading } = useProjects()
   const createProject = useCreateProject()
   const navigate = useNavigate()
+  const { user, signOut } = useAuth()
 
   const activeProjects = projects.filter(p => p.status === 'ativo').length
   const totalProjects = projects.length
@@ -194,6 +199,26 @@ export function DashboardPage() {
               <Plus className="w-3.5 h-3.5" />
               Novo Projeto
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center justify-center w-8 h-8 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                  <User className="w-3.5 h-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 bg-popover border-border">
+                <DropdownMenuLabel className="text-[10px] text-muted-foreground font-normal truncate">
+                  {user?.email}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem
+                  className="gap-2 text-xs cursor-pointer text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
+                  onClick={() => signOut().then(() => navigate('/login'))}
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>

@@ -32,6 +32,26 @@ export class SupabaseAuthAdapter implements IAuthProvider {
     return fetchAuthUser(data.user.id, data.user.email ?? email)
   }
 
+  async signUp(email: string, password: string, empresaNome: string): Promise<AuthUser> {
+    const { data, error } = await supabase.auth.signUp({ email, password })
+
+    if (error || !data.user) {
+      throw new Error(error?.message ?? 'Falha ao criar conta')
+    }
+
+    // Sign in immediately (local Supabase auto-confirms email)
+    const { data: session, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    if (signInError || !session.user) {
+      throw new Error(signInError?.message ?? 'Falha ao autenticar após cadastro')
+    }
+
+    // Create empresa and link user via security definer function
+    const { error: rpcError } = await supabase.rpc('registrar_usuario', { p_empresa_nome: empresaNome })
+    if (rpcError) throw new Error(rpcError.message)
+
+    return fetchAuthUser(session.user.id, session.user.email ?? email)
+  }
+
   async signOut(): Promise<void> {
     const { error } = await supabase.auth.signOut()
     if (error) throw new Error(error.message)

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronDown, Bell, Home, Plus, Check, Loader2, Zap, ChevronRight } from 'lucide-react'
+import { ChevronDown, Bell, Home, Plus, Check, Loader2, Zap, ChevronRight, LogOut, User } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger
 } from '@/shared/ui/dropdown-menu'
+import { useAuth } from '@/shared/auth'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter
@@ -37,6 +38,7 @@ const DISCIPLINA_LABELS: Record<string, string> = {
 
 export function Header({ project, iteracoes, activeIteracao, disciplina }: HeaderProps) {
   const navigate = useNavigate()
+  const { user, signOut } = useAuth()
   const [showNewIteracao, setShowNewIteracao] = useState(false)
   const [newNome, setNewNome] = useState('')
   const [newModulo, setNewModulo] = useState('')
@@ -180,6 +182,28 @@ export function Header({ project, iteracoes, activeIteracao, disciplina }: Heade
         <Bell className="w-3.5 h-3.5" />
         <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-indigo-500 rounded-full" />
       </button>
+
+      {/* User menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+            <User className="w-3.5 h-3.5" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-52 bg-popover border-border">
+          <DropdownMenuLabel className="text-[10px] text-muted-foreground font-normal truncate">
+            {user?.email}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-border" />
+          <DropdownMenuItem
+            className="gap-2 text-xs cursor-pointer text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
+            onClick={() => signOut().then(() => navigate('/login'))}
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sair
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* New Iteration Dialog */}
       <Dialog open={showNewIteracao} onOpenChange={setShowNewIteracao}>

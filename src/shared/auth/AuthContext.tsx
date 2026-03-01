@@ -6,6 +6,7 @@ interface AuthContextValue {
   user: AuthUser | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, empresaNome: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -32,13 +33,18 @@ export function AuthProvider({ children, provider }: AuthProviderProps) {
     setUser(u)
   }
 
+  async function signUp(email: string, password: string, empresaNome: string) {
+    const u = await provider.signUp(email, password, empresaNome)
+    setUser(u)
+  }
+
   async function signOut() {
     await provider.signOut()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )
