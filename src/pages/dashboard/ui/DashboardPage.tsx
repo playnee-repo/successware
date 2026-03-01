@@ -16,13 +16,17 @@ import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { BlockNoteField } from '@/shared/ui/blocknote-field'
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/shared/ui/select'
+import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter
 } from '@/shared/ui/dialog'
 import { ThemeToggle } from '@/shared/ui/theme-toggle'
 import { ThemeSelector } from '@/shared/ui/theme-selector'
 import { cn, formatDate } from '@/shared/lib/utils'
-import type { Project, ProjectStatus } from '@/entities/project/model/types'
+import type { Project, ProjectStatus, ProjectTipo } from '@/entities/project/model/types'
+import { useProjectProgress, calcularProgressoGlobal } from '@/entities/project/model/useProjectProgress'
 
 const STATUS_CONFIG: Record<ProjectStatus, { label: string; variant: 'success' | 'warning' | 'secondary' | 'outline' }> = {
   ativo: { label: 'Ativo', variant: 'success' },
@@ -56,10 +60,10 @@ function useCreateProject() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: async ({ nome, descricao, empresa }: { nome: string; descricao?: string; empresa?: string }) => {
+    mutationFn: async ({ nome, descricao, empresa, tipo }: { nome: string; descricao?: string; empresa?: string; tipo?: ProjectTipo }) => {
       const { data, error } = await supabase
         .from('projetos')
-        .insert({ nome, descricao, empresa, empresa_id: user!.empresaId })
+        .insert({ nome, descricao, empresa, tipo, empresa_id: user!.empresaId })
         .select()
         .single()
       if (error) throw error
@@ -71,10 +75,26 @@ function useCreateProject() {
   })
 }
 
+const DISCIPLINA_LABEL: Record<string, string> = {
+  descoberta: 'D',
+  requisitos: 'R',
+  arquitetura: 'A',
+  construcao: 'C',
+  qualidade: 'Q',
+}
+
+const DISCIPLINA_ORDER = ['descoberta', 'requisitos', 'arquitetura', 'construcao', 'qualidade']
+
 function ProjectCard({ project }: { project: Project }) {
   const navigate = useNavigate()
   const statusConfig = STATUS_CONFIG[project.status]
   const indicatorColor = STATUS_INDICATOR[project.status]
+  const { data: disciplinas = [] } = useProjectProgress(project.id)
+  const progressoGlobal = calcularProgressoGlobal(disciplinas)
+  const temProgresso = disciplinas.some(d => d.total_artefatos > 0)
+
+  // Mapeia disciplina → progresso para lookup rápido
+  const progressoMap = Object.fromEntries(disciplinas.map(d => [d.disciplina, d]))
 
   return (
     <div
@@ -121,9 +141,57 @@ function ProjectCard({ project }: { project: Project }) {
 
         {/* Description */}
         {project.descricao && (
-          <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 mb-4">
+          <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 mb-3">
             {project.descricao}
           </p>
+        )}
+
+        {/* Progress gauge */}
+        {temProgresso && (
+          <div className="mb-3 space-y-1.5">
+            {/* Bar + % */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${progressoGlobal}%`,
+                    background: progressoGlobal >= 80
+                      ? 'oklch(0.65 0.18 150)'  // green
+                      : progressoGlobal > 0
+                        ? 'oklch(0.75 0.18 85)'  // amber
+                        : 'transparent',
+                  }}
+                />
+              </div>
+              <span className="text-[10px] font-medium text-muted-foreground tabular-nums w-7 text-right">
+                {progressoGlobal}%
+              </span>
+            </div>
+
+            {/* Discipline badges */}
+            <div className="flex items-center gap-1">
+              {DISCIPLINA_ORDER.map(disc => {
+                const dp = progressoMap[disc]
+                const p = dp?.progresso ?? 0
+                const hasAny = (dp?.total_artefatos ?? 0) > 0
+                return (
+                  <div
+                    key={disc}
+                    title={`${disc}: ${p}%`}
+                    className={cn(
+                      'w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold transition-colors',
+                      !hasAny && 'bg-muted text-muted-foreground/40',
+                      hasAny && p < 80 && 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                      hasAny && p >= 80 && 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+                    )}
+                  >
+                    {DISCIPLINA_LABEL[disc]}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         )}
 
         {/* Footer row */}
@@ -147,11 +215,21 @@ function ProjectCard({ project }: { project: Project }) {
   )
 }
 
+const TIPO_OPTIONS: { value: ProjectTipo; label: string; emoji: string }[] = [
+  { value: 'startup_mvp', label: 'Startup MVP', emoji: '🚀' },
+  { value: 'saas', label: 'SaaS', emoji: '☁️' },
+  { value: 'app_mobile', label: 'App Mobile', emoji: '📱' },
+  { value: 'api', label: 'API / Backend', emoji: '⚡' },
+  { value: 'sistema_interno', label: 'Sistema Interno', emoji: '🏢' },
+  { value: 'outro', label: 'Outro', emoji: '✨' },
+]
+
 export function DashboardPage() {
   const [showNew, setShowNew] = useState(false)
   const [nome, setNome] = useState('')
   const [descricao, setDescricao] = useState('')
   const [empresa, setEmpresa] = useState('')
+  const [tipo, setTipo] = useState<ProjectTipo>('outro')
   const { data: projects = [], isLoading } = useProjects()
   const createProject = useCreateProject()
   const navigate = useNavigate()
@@ -167,10 +245,12 @@ export function DashboardPage() {
       nome: nome.trim(),
       descricao: descricao.trim() || undefined,
       empresa: empresa.trim() || undefined,
+      tipo,
     })
     setNome('')
     setDescricao('')
     setEmpresa('')
+    setTipo('outro')
     setShowNew(false)
     navigate(`/project/${project.id}/requisitos`)
   }
@@ -414,6 +494,23 @@ export function DashboardPage() {
                 placeholder="Ex: Acme Corp"
                 className="bg-muted border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
               />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                Tipo do Projeto
+              </label>
+              <Select value={tipo} onValueChange={v => setTipo(v as ProjectTipo)}>
+                <SelectTrigger className="bg-muted border-input text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIPO_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                      {opt.emoji} {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">

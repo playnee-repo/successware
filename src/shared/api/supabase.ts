@@ -47,14 +47,18 @@ export type Database = {
           status: 'ativo' | 'pausado' | 'concluido' | 'arquivado'
           empresa: string | null
           empresa_id: string | null
+          tipo: 'startup_mvp' | 'saas' | 'app_mobile' | 'api' | 'sistema_interno' | 'outro' | null
+          contexto_ia: string | null
           criado_em: string
           atualizado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['projetos']['Row'], 'id' | 'criado_em' | 'atualizado_em' | 'empresa_id'> & {
+        Insert: Omit<Database['public']['Tables']['projetos']['Row'], 'id' | 'criado_em' | 'atualizado_em' | 'empresa_id' | 'tipo' | 'contexto_ia'> & {
           id?: string
           criado_em?: string
           atualizado_em?: string
           empresa_id?: string | null
+          tipo?: 'startup_mvp' | 'saas' | 'app_mobile' | 'api' | 'sistema_interno' | 'outro' | null
+          contexto_ia?: string | null
         }
         Update: Partial<Database['public']['Tables']['projetos']['Insert']>
       }
