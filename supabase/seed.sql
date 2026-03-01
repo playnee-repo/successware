@@ -1,6 +1,14 @@
 -- SDLC Copilot — Seed Data
 
 -- ============================================================
+-- EMPRESA DEMO
+-- ============================================================
+
+insert into empresas (id, nome, slug)
+values ('00000000-0000-0000-0000-000000000001', 'Empresa Demo', 'demo')
+on conflict (slug) do nothing;
+
+-- ============================================================
 -- ATIVIDADES POR DISCIPLINA (templates globais)
 -- ============================================================
 
@@ -891,3 +899,22 @@ insert into mensagens_agente (iteracao_id, disciplina, agente, tipo, conteudo, m
     'Olá! Sou o SCRIBE, seu especialista em Engenharia de Requisitos. Estou pronto para ajudar a documentar e estruturar os requisitos desta iteração. Clique em **Executar IA** em qualquer atividade para começarmos!',
     '{"tipo": "boas_vindas"}'
   );
+
+-- ============================================================
+-- MIGRAÇÃO: atribuir empresa demo aos dados existentes
+-- ============================================================
+
+update projetos set empresa_id = '00000000-0000-0000-0000-000000000001'
+where empresa_id is null;
+
+update iteracoes set empresa_id = '00000000-0000-0000-0000-000000000001'
+where empresa_id is null;
+
+update artefatos set empresa_id = '00000000-0000-0000-0000-000000000001'
+where empresa_id is null;
+
+update mensagens_agente set empresa_id = '00000000-0000-0000-0000-000000000001'
+where empresa_id is null;
+
+update documentos_projeto set empresa_id = '00000000-0000-0000-0000-000000000001'
+where empresa_id is null;
