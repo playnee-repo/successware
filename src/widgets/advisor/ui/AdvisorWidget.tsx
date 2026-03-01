@@ -1,13 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { X, RefreshCw, ArrowRight, Loader2, Lightbulb } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { useAdvisor } from '@/features/advisor/model/useAdvisor'
 import { useProjectProgress } from '@/entities/project/model/useProjectProgress'
 import type { Project } from '@/entities/project/model/types'
 
 const EXPANDED_KEY = 'advisor-expanded'
+const VALID_DISCIPLINAS = ['descoberta', 'requisitos', 'arquitetura', 'construcao', 'qualidade']
+
+function normalizarDisciplina(raw: string | null): string | null {
+  if (!raw) return null
+  const lower = raw.toLowerCase().trim()
+  return VALID_DISCIPLINAS.includes(lower) ? lower : null
+}
 
 interface AdvisorWidgetProps {
   projeto: Project
@@ -15,7 +21,6 @@ interface AdvisorWidgetProps {
 }
 
 export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) {
-  const navigate = useNavigate()
   const { data: disciplinasProgresso = [] } = useProjectProgress(projeto.id)
   const { recomendacao, isLoading, error, analisar } = useAdvisor(
     projeto,
@@ -27,7 +32,6 @@ export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) 
     try { return localStorage.getItem(EXPANDED_KEY) !== 'false' } catch { return true }
   })
 
-  // Auto-expande quando chega nova recomendação
   const prevRecRef = useRef(recomendacao)
   useEffect(() => {
     if (recomendacao && recomendacao !== prevRecRef.current) {
@@ -44,16 +48,16 @@ export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) 
     })
   }
 
-  function handleAction() {
-    if (!recomendacao?.disciplina) return
-    navigate(`/project/${projeto.id}/${recomendacao.disciplina}`)
-  }
+  const disciplinaDestino = recomendacao ? normalizarDisciplina(recomendacao.disciplina) : null
+  const actionHref = disciplinaDestino
+    ? `/project/${projeto.id}/${disciplinaDestino}`
+    : null
 
   return (
-    <div className="absolute bottom-5 right-5 z-50 flex flex-col items-end gap-2 pointer-events-none">
+    <div className="absolute bottom-5 right-5 z-50 flex flex-col items-end gap-2">
       {/* Card expandido */}
       {expanded && (
-        <div className="w-72 bg-card border border-border rounded-2xl shadow-2xl shadow-black/25 overflow-hidden pointer-events-auto">
+        <div className="w-72 bg-card border border-border rounded-2xl shadow-2xl shadow-black/25 overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/60">
             <div className="w-5 h-5 rounded-md gradient-primary flex items-center justify-center shrink-0">
@@ -63,6 +67,7 @@ export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) 
               ADVISOR
             </span>
             <button
+              type="button"
               onClick={analisar}
               disabled={isLoading}
               title="Analisar novamente"
@@ -71,6 +76,7 @@ export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) 
               <RefreshCw className={cn('w-3 h-3', isLoading && 'animate-spin')} />
             </button>
             <button
+              type="button"
               onClick={toggle}
               className="flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
             >
@@ -97,15 +103,17 @@ export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) 
                     {recomendacao.mensagem}
                   </p>
                 </div>
-                {recomendacao.disciplina && (
-                  <Button
-                    size="sm"
-                    onClick={handleAction}
-                    className="w-full h-7 text-xs gap-1.5 gradient-primary border-0 text-white hover:opacity-90"
+                {actionHref && (
+                  <Link
+                    to={actionHref}
+                    className={cn(
+                      'flex items-center justify-center gap-1.5 w-full h-7 rounded-md text-xs font-medium',
+                      'gradient-primary text-white hover:opacity-90 transition-opacity',
+                    )}
                   >
                     {recomendacao.acao}
                     <ArrowRight className="w-3 h-3" />
-                  </Button>
+                  </Link>
                 )}
               </div>
             ) : null}
@@ -115,11 +123,11 @@ export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) 
 
       {/* Botão toggle */}
       <button
+        type="button"
         onClick={toggle}
         className={cn(
           'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold',
           'gradient-primary text-white shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity',
-          'pointer-events-auto',
         )}
       >
         <div className={cn(
