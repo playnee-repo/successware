@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ArrowRight, Loader2, FolderOpen,
-  Building2, Calendar, Activity, Zap, GitBranch, Sparkles, LogOut, User, Users
+  Building2, Calendar, Activity, Zap, GitBranch, Sparkles, LogOut, User, Users,
+  MoreHorizontal, Trash2, AlertTriangle,
 } from 'lucide-react'
 import { supabase } from '@/shared/api/supabase'
 import { useAuth } from '@/shared/auth'
@@ -76,6 +77,19 @@ function useCreateProject() {
   })
 }
 
+function useDeleteProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase.from('projetos').delete().eq('id', projectId)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projetos'] })
+    },
+  })
+}
+
 const DISCIPLINA_LABEL: Record<string, string> = {
   descoberta: 'D',
   requisitos: 'R',
@@ -88,16 +102,24 @@ const DISCIPLINA_ORDER = ['descoberta', 'requisitos', 'arquitetura', 'construcao
 
 function ProjectCard({ project }: { project: Project }) {
   const navigate = useNavigate()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const deleteProject = useDeleteProject()
   const statusConfig = STATUS_CONFIG[project.status]
   const indicatorColor = STATUS_INDICATOR[project.status]
   const { data: disciplinas = [] } = useProjectProgress(project.id)
   const progressoGlobal = calcularProgressoGlobal(disciplinas)
   const temProgresso = disciplinas.some(d => d.total_artefatos > 0)
 
-  // Mapeia disciplina → progresso para lookup rápido
   const progressoMap = Object.fromEntries(disciplinas.map(d => [d.disciplina, d]))
 
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    await deleteProject.mutateAsync(project.id)
+    setConfirmDelete(false)
+  }
+
   return (
+    <>
     <div
       className={cn(
         'group relative bg-card border border-border rounded-xl overflow-hidden cursor-pointer',
@@ -133,11 +155,36 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
           </div>
 
-          {/* Status badge — top right */}
-          <Badge variant={statusConfig.variant} className="shrink-0 text-[9px] h-5 px-2 gap-1">
-            <div className={cn('w-1 h-1 rounded-full shrink-0', indicatorColor)} />
-            {statusConfig.label}
-          </Badge>
+          {/* Status badge + actions */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Badge variant={statusConfig.variant} className="text-[9px] h-5 px-2 gap-1">
+              <div className={cn('w-1 h-1 rounded-full shrink-0', indicatorColor)} />
+              {statusConfig.label}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={e => e.stopPropagation()}
+                  className="flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground/0 group-hover:text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+                >
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-36 bg-popover border-border"
+                onClick={e => e.stopPropagation()}
+              >
+                <DropdownMenuItem
+                  className="gap-2 text-xs cursor-pointer text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
+                  onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Excluir projeto
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Description */}
@@ -213,6 +260,48 @@ function ProjectCard({ project }: { project: Project }) {
         </div>
       </div>
     </div>
+
+    {/* Confirm delete dialog */}
+    <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+      <DialogContent
+        className="max-w-sm bg-card border-border"
+        onClick={e => e.stopPropagation()}
+      >
+        <DialogHeader>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-9 h-9 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-4.5 h-4.5 text-destructive" />
+            </div>
+            <DialogTitle className="text-foreground">Excluir projeto?</DialogTitle>
+          </div>
+          <DialogDescription className="text-muted-foreground text-xs leading-relaxed">
+            O projeto <span className="font-semibold text-foreground">"{project.nome}"</span> e todos os seus artefatos, iterações e documentos serão excluídos permanentemente. Essa ação não pode ser desfeita.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
+            className="border-border"
+          >
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            disabled={deleteProject.isPending}
+            onClick={handleDelete}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 border-0"
+          >
+            {deleteProject.isPending
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <><Trash2 className="w-3.5 h-3.5" /> Excluir</>
+            }
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
 
