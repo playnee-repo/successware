@@ -12,6 +12,7 @@ import { cn } from '@/shared/lib/utils'
 import type { Project } from '@/entities/project/model/types'
 import type { Iteration } from '@/entities/iteration/model/types'
 import type { Disciplina } from '@/entities/artifact/model/types'
+import { useProjectProgress, calcularProgressoGlobal } from '@/entities/project/model/useProjectProgress'
 
 function useProject(projectId: string) {
   return useQuery({
@@ -172,7 +173,8 @@ export function ProjectPage() {
   const activeIteracao = iteracoes.find(i => i.status === 'ativa') ?? iteracoes[0] ?? null
   const agentId = atividades[0]?.agente ?? 'SCRIBE'
 
-  const globalProgress = 0 // Simplified for MVP
+  const { data: disciplinasProgresso = [] } = useProjectProgress(projectId!)
+  const globalProgress = calcularProgressoGlobal(disciplinasProgresso)
 
   if (projectLoading || iteracoesLoading) {
     return (
