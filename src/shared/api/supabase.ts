@@ -12,6 +12,33 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export type Database = {
   public: {
     Tables: {
+      empresas: {
+        Row: {
+          id: string
+          nome: string
+          slug: string
+          criado_em: string
+        }
+        Insert: Omit<Database['public']['Tables']['empresas']['Row'], 'id' | 'criado_em'> & {
+          id?: string
+          criado_em?: string
+        }
+        Update: Partial<Database['public']['Tables']['empresas']['Insert']>
+      }
+      membros_empresa: {
+        Row: {
+          id: string
+          empresa_id: string
+          user_id: string
+          role: 'admin' | 'membro'
+          criado_em: string
+        }
+        Insert: Omit<Database['public']['Tables']['membros_empresa']['Row'], 'id' | 'criado_em'> & {
+          id?: string
+          criado_em?: string
+        }
+        Update: Partial<Database['public']['Tables']['membros_empresa']['Insert']>
+      }
       projetos: {
         Row: {
           id: string
@@ -19,6 +46,7 @@ export type Database = {
           descricao: string | null
           status: 'ativo' | 'pausado' | 'concluido' | 'arquivado'
           empresa: string | null
+          empresa_id: string | null
           criado_em: string
           atualizado_em: string
         }
@@ -37,6 +65,7 @@ export type Database = {
           modulo_foco: string | null
           status: 'planejada' | 'ativa' | 'concluida'
           ordem: number
+          empresa_id: string | null
           criado_em: string
           atualizado_em: string
         }
@@ -93,6 +122,7 @@ export type Database = {
           agente_autor: string
           status_aprovacao: 'rascunho' | 'em_revisao' | 'aprovado' | 'rejeitado'
           preferencia_view: 'visual' | 'rawjson'
+          empresa_id: string | null
           criado_em: string
           atualizado_em: string
         }
@@ -112,6 +142,7 @@ export type Database = {
           tipo: 'user' | 'agent' | 'system' | 'action'
           conteudo: string
           metadados_json: Record<string, unknown> | null
+          empresa_id: string | null
           criado_em: string
         }
         Insert: Omit<Database['public']['Tables']['mensagens_agente']['Row'], 'id' | 'criado_em'> & {
@@ -128,6 +159,7 @@ export type Database = {
           conteudo_md: string
           ordem: number
           ativo: boolean
+          empresa_id: string | null
           criado_em: string
           atualizado_em: string
         }
