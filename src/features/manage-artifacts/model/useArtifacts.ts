@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/api/supabase'
+import { useAuth } from '@/shared/auth'
 import type {
   Atividade,
   ConfiguracaoAtividade,
@@ -266,6 +267,7 @@ export const useUpdateInsumoContent = useUpdateArtefatoContent
 // ==============================
 export function useCreateArtefato() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async ({
@@ -298,6 +300,7 @@ export function useCreateArtefato() {
           agente_autor: 'usuario',
           status_aprovacao,
           preferencia_view: 'visual',
+          empresa_id: user!.empresaId,
         })
         .select()
         .single()

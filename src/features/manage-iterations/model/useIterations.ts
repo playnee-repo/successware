@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/api/supabase'
+import { useAuth } from '@/shared/auth'
 import type { Iteration, CreateIterationInput } from '@/entities/iteration/model/types'
 
 export function useIterations(projectId: string | undefined) {
@@ -21,6 +22,7 @@ export function useIterations(projectId: string | undefined) {
 
 export function useCreateIteration() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async (input: CreateIterationInput): Promise<Iteration> => {
@@ -36,7 +38,7 @@ export function useCreateIteration() {
 
       const { data, error } = await supabase
         .from('iteracoes')
-        .insert({ ...input, ordem: input.ordem ?? nextOrdem })
+        .insert({ ...input, ordem: input.ordem ?? nextOrdem, empresa_id: user!.empresaId })
         .select()
         .single()
 

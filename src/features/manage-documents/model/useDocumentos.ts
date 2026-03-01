@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/api/supabase'
+import { useAuth } from '@/shared/auth'
 import type { Database } from '@/shared/api/supabase'
 
 type DocumentoRow = Database['public']['Tables']['documentos_projeto']['Row']
@@ -30,11 +31,12 @@ export function useDocumentos(projectId: string | undefined) {
 
 export function useCreateDocumento(projectId: string) {
   const qc = useQueryClient()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async (payload: Omit<DocumentoInsert, 'projeto_id'>) => {
       const { data, error } = await supabase
         .from('documentos_projeto')
-        .insert({ ...payload, projeto_id: projectId })
+        .insert({ ...payload, projeto_id: projectId, empresa_id: user!.empresaId })
         .select()
         .single()
       if (error) throw error

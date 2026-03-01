@@ -7,6 +7,7 @@ import { Badge } from '@/shared/ui/badge'
 import { useExecuteAi } from '@/features/execute-ai/model/useExecuteAi'
 import { useCreateArtefato } from '@/features/manage-artifacts/model/useArtifacts'
 import { supabase } from '@/shared/api/supabase'
+import { useAuth } from '@/shared/auth'
 import { cn } from '@/shared/lib/utils'
 import { NomeArtefatoDialog } from './NomeArtefatoDialog'
 import type { AtividadeComProgresso, Artefato, ArtefatoTipo, ConfiguracaoAtividade } from '@/entities/artifact/model/types'
@@ -61,6 +62,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
   const { execute, isExecuting } = useExecuteAi()
   const { mutateAsync: createArtefato } = useCreateArtefato()
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   const agente = atividade.agente || 'SCRIBE'
   const accentClass = AGENT_ACCENT[agente] ?? 'card-accent-indigo'
@@ -118,6 +120,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
         tipo: 'agent',
         conteudo: result.chatMessage,
         metadados_json: { atividade_id: atividade.id, artefato_id: result.artefato.id, versao: result.artefato.versao },
+        empresa_id: user!.empresaId,
       })
 
       queryClient.invalidateQueries({ queryKey: ['mensagens', iteracao.id] })
@@ -142,6 +145,7 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
         tipo: 'agent',
         conteudo: result.chatMessage,
         metadados_json: { atividade_id: atividade.id, artefato_id: result.artefato.id, versao: result.artefato.versao },
+        empresa_id: user!.empresaId,
       })
 
       queryClient.invalidateQueries({ queryKey: ['mensagens', iteracao.id] })

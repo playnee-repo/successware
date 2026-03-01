@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/shared/api/supabase'
+import { useAuth } from '@/shared/auth'
 import { getGeminiModelForConfig, buildPrompt, FALLBACK_SYSTEM_PROMPT } from '@/shared/config/gemini'
 import type { Atividade, ConfiguracaoAtividade, Artefato } from '@/entities/artifact/model/types'
 import type { Iteration } from '@/entities/iteration/model/types'
@@ -13,6 +14,7 @@ interface ExecuteAiParams {
   configuracao: ConfiguracaoAtividade
   nomeArtefato: string
   artefatosAprovados?: Artefato[]
+  empresaId: string
 }
 
 interface ExecuteAiResult {
@@ -21,7 +23,7 @@ interface ExecuteAiResult {
 }
 
 async function executeAiCall(params: ExecuteAiParams): Promise<ExecuteAiResult> {
-  const { projeto, iteracao, atividade, configuracao, nomeArtefato, artefatosAprovados = [] } = params
+  const { projeto, iteracao, atividade, configuracao, nomeArtefato, artefatosAprovados = [], empresaId } = params
 
   // 1. Buscar artefatos existentes com o mesmo nome para obter versão atual
   const { data: existingArtefatos } = await supabase
@@ -122,6 +124,7 @@ Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
       agente_autor: agentId,
       status_aprovacao: 'rascunho',
       preferencia_view: 'visual',
+      empresa_id: empresaId,
     })
     .select()
     .single()
@@ -140,10 +143,12 @@ Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
 
 export function useExecuteAi() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   const [isStreaming, setIsStreaming] = useState(false)
 
   const mutation = useMutation({
-    mutationFn: executeAiCall,
+    mutationFn: (params: Omit<ExecuteAiParams, 'empresaId'>) =>
+      executeAiCall({ ...params, empresaId: user!.empresaId }),
     onMutate: () => {
       setIsStreaming(true)
     },

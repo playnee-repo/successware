@@ -6,6 +6,7 @@ import {
   Building2, Calendar, Activity, Zap, GitBranch, Sparkles
 } from 'lucide-react'
 import { supabase } from '@/shared/api/supabase'
+import { useAuth } from '@/shared/auth'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
@@ -49,11 +50,12 @@ function useProjects() {
 
 function useCreateProject() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   return useMutation({
     mutationFn: async ({ nome, descricao, empresa }: { nome: string; descricao?: string; empresa?: string }) => {
       const { data, error } = await supabase
         .from('projetos')
-        .insert({ nome, descricao, empresa })
+        .insert({ nome, descricao, empresa, empresa_id: user!.empresaId })
         .select()
         .single()
       if (error) throw error
