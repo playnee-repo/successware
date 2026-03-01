@@ -215,6 +215,7 @@ export function ProjectPage() {
       progresso={globalProgress}
       agentId={agentId}
       chatContext={chatContext}
+      projeto={projeto}
     >
       {/* Header */}
       <Header

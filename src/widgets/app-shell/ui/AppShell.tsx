@@ -2,8 +2,10 @@ import { useState, useRef } from 'react'
 import { Sparkles, GripVertical } from 'lucide-react'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { AgentChat } from '@/widgets/agent-chat/ui/AgentChat'
+import { AdvisorWidget } from '@/widgets/advisor/ui/AdvisorWidget'
 import type { Iteration } from '@/entities/iteration/model/types'
 import type { ChatContext } from '@/entities/agent/model/types'
+import type { Project } from '@/entities/project/model/types'
 
 const CHAT_WIDTH_KEY = 'app-shell-chat-width'
 const CHAT_WIDTH_MIN = 280
@@ -27,14 +29,13 @@ interface AppShellProps {
   iteracao: Iteration | null
   disciplina?: string
   progresso?: number
-  /** ID do agente para o chat (ex.: SCRIBE, ARCH). Usado para buscar config e prompt do DB. */
   agentId?: string
-  /** Contexto atual (projeto, tela, insumo) para o agente sugerir melhorias. */
   chatContext?: ChatContext
+  projeto?: Project
   children: React.ReactNode
 }
 
-export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, agentId, chatContext, children }: AppShellProps) {
+export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, agentId, chatContext, projeto, children }: AppShellProps) {
   const [chatWidth, setChatWidth] = useState(getStoredChatWidth)
   const resizeRef = useRef({ startX: 0, startWidth: 0 })
   const lastWidthRef = useRef(chatWidth)
@@ -89,6 +90,11 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
           <GripVertical className="w-3 h-3 text-muted-foreground" />
         </div>
       </div>
+
+      {/* ADVISOR floating widget */}
+      {projeto && (
+        <AdvisorWidget projeto={projeto} disciplinaAtual={disciplina} />
+      )}
 
       {/* Agent Chat Panel */}
       <div
