@@ -8,6 +8,7 @@ import { cn } from '@/shared/lib/utils'
 import { useDisciplinas } from '@/features/manage-artifacts/model/useArtifacts'
 import { useAllAgentes } from '@/features/manage-admin/model/useAdminAgentes'
 import { getAgenteColor } from '@/shared/lib/agent-colors'
+import { useProjectProgress } from '@/entities/project/model/useProjectProgress'
 import type { Iteration } from '@/entities/iteration/model/types'
 
 interface DisciplinaConfig {
@@ -87,6 +88,7 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
   const { projectId, disciplina: activeDisciplina } = useParams()
   const { data: dbDisciplinas = [] } = useDisciplinas()
   const { data: agentes = [] } = useAllAgentes()
+  const { data: disciplinasProgresso = [] } = useProjectProgress(projectId ?? '')
   const agentesAtivos = agentes.filter((a) => a.ativo)
 
   const disciplinas: DisciplinaConfig[] = useMemo(() => {
@@ -148,6 +150,9 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
             {disciplinas.map((disc) => {
               const isActive = activeDisciplina === disc.id
               const Icon = disc.icon
+              const dp = disciplinasProgresso.find(d => d.disciplina === disc.id)
+              const progress = dp?.progresso ?? 0
+              const hasWork = (dp?.total_artefatos ?? 0) > 0
               return (
                 <Link
                   key={disc.id}
@@ -169,14 +174,23 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
                   )}>
                     {disc.label}
                   </span>
-                  {isActive && (
+                  {isActive ? (
                     <span className={cn(
                       'text-[8px] font-bold px-1.5 py-0.5 rounded shrink-0',
                       disc.agentColor
                     )}>
                       {disc.agente}
                     </span>
-                  )}
+                  ) : hasWork ? (
+                    <span className={cn(
+                      'text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0',
+                      progress >= 80
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : 'bg-amber-500/15 text-amber-400'
+                    )}>
+                      {progress}%
+                    </span>
+                  ) : null}
                 </Link>
               )
             })}

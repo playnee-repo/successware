@@ -17,4 +17,13 @@ export interface CreateProjectInput {
   nome: string
   descricao?: string
   empresa?: string
+  tipo?: ProjectTipo
+  contexto_ia?: string
+}
+
+export interface DisciplinaProgresso {
+  disciplina: string
+  total_artefatos: number
+  aprovados: number
+  progresso: number
 }

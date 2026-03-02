@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sparkles, Link, Paperclip } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -47,6 +47,14 @@ export function NomeArtefatoDialog({
     configuracoes.length === 0
       ? null
       : configuracoes.find(c => c.id === selectedConfiguracaoId) ?? configuracoes[0]
+
+  // Pre-fill name from first config when dialog opens
+  useEffect(() => {
+    if (open && !nome && configuracoes.length > 0) {
+      setNome(configuracoes[0].nome ?? '')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const handleConfirm = () => {
     const trimmedNome = nome.trim()

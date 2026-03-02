@@ -6,8 +6,8 @@ import {
   Building2, Calendar, Activity, Zap, GitBranch, Sparkles, LogOut, User, Users,
   MoreHorizontal, Trash2, AlertTriangle,
 } from 'lucide-react'
-import { supabase } from '@/shared/api/supabase'
 import { useAuth } from '@/shared/auth'
+import { projetoService } from '@/shared/api/container'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger
@@ -47,14 +47,7 @@ const STATUS_INDICATOR: Record<ProjectStatus, string> = {
 function useProjects() {
   return useQuery({
     queryKey: ['projetos'],
-    queryFn: async (): Promise<Project[]> => {
-      const { data, error } = await supabase
-        .from('projetos')
-        .select('*')
-        .order('criado_em', { ascending: false })
-      if (error) throw error
-      return data as Project[]
-    },
+    queryFn: () => projetoService.findAll(),
   })
 }
 
@@ -62,15 +55,8 @@ function useCreateProject() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: async ({ nome, descricao, empresa, tipo }: { nome: string; descricao?: string; empresa?: string; tipo?: ProjectTipo }) => {
-      const { data, error } = await supabase
-        .from('projetos')
-        .insert({ nome, descricao, empresa, tipo, empresa_id: user!.empresaId })
-        .select()
-        .single()
-      if (error) throw error
-      return data as Project
-    },
+    mutationFn: ({ nome, descricao, empresa, tipo }: { nome: string; descricao?: string; empresa?: string; tipo?: ProjectTipo }) =>
+      projetoService.create({ nome, descricao, empresa, tipo }, user!.empresaId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projetos'] })
     },
@@ -80,10 +66,7 @@ function useCreateProject() {
 function useDeleteProject() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (projectId: string) => {
-      const { error } = await supabase.from('projetos').delete().eq('id', projectId)
-      if (error) throw error
-    },
+    mutationFn: (projectId: string) => projetoService.delete(projectId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projetos'] })
     },

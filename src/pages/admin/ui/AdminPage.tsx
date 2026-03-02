@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   ArrowLeft, Plus, Pencil, Trash2, Check, X, AlertTriangle, ChevronRight,
   LayoutGrid, FileCode, Bot, Settings2, Sliders, Cpu, Hash, GripVertical,
-  Play, Loader2, Info,
+  Play, Loader2, Info, SlidersHorizontal, Lightbulb,
 } from 'lucide-react'
 import { cn, collapseBlankLines } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
@@ -34,19 +34,29 @@ import {
   useRenameAgente,
 } from '@/features/manage-admin/model/useAdminAgentes'
 import type { AgenteConfig } from '@/entities/admin/model/types'
-import type { Database } from '@/shared/api/supabase'
+import type { Atividade } from '@/entities/artifact/model/types'
 import { genAI } from '@/shared/config/gemini'
 import { DEFINICOES_TEMPLATES } from '@/shared/config/definicoes-templates'
 import { getAgenteColor } from '@/shared/lib/agent-colors'
+import { useConfiguracoesSistema, useSetConfiguracao, CONFIG_KEYS } from '@/entities/config/model/useConfiguracoesSistema'
 import { ThemeSelector } from '@/shared/ui/theme-selector'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip'
 
-type AtividadeRow = Database['public']['Tables']['atividades']['Row']
-type DisciplinaDB = AtividadeRow['disciplina']
+type AtividadeRow = Atividade
+type DisciplinaDB = string
 type Disciplina = string
-type Secao = 'atividades' | 'definicoes' | 'agentes'
+type Secao = 'atividades' | 'definicoes' | 'agentes' | 'configuracoes'
 
 const DISCIPLINAS: string[] = ['descoberta', 'requisitos', 'arquitetura', 'construcao', 'qualidade']
+
+const TIPO_PROJETO_OPTIONS: { value: string; label: string }[] = [
+  { value: 'startup_mvp',    label: 'Startup MVP' },
+  { value: 'saas',           label: 'SaaS' },
+  { value: 'app_mobile',     label: 'App Mobile' },
+  { value: 'api',            label: 'API / Backend' },
+  { value: 'sistema_interno', label: 'Sistema Interno' },
+  { value: 'outro',          label: 'Outro' },
+]
 
 function getDisciplinaLabel(d: string): string {
   const map: Record<string, string> = {
@@ -839,6 +849,7 @@ function DefinicaoEditor({
   const [tipoInsumo, setTipoInsumo] = useState(definicao.tipo_insumo)
   const [agenteResp, setAgenteResp] = useState(definicao.agente_responsavel)
   const [promptTemplate, setPromptTemplate] = useState(() => collapseBlankLines(definicao.prompt_template ?? ''))
+  const [tiposProjeto, setTiposProjeto] = useState<string[]>(definicao.tipos_projeto ?? [])
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [templateSelectValue, setTemplateSelectValue] = useState('__none__')
@@ -848,18 +859,25 @@ function DefinicaoEditor({
     setTipoInsumo(definicao.tipo_insumo)
     setAgenteResp(definicao.agente_responsavel)
     setPromptTemplate(collapseBlankLines(definicao.prompt_template ?? ''))
+    setTiposProjeto(definicao.tipos_projeto ?? [])
     setTemplateSelectValue('__none__')
   }, [
     definicao.id,
     definicao.tipo_insumo,
     definicao.agente_responsavel,
     definicao.prompt_template,
+    definicao.tipos_projeto,
   ])
+
+  const tiposProjetoChanged =
+    JSON.stringify([...(tiposProjeto)].sort()) !==
+    JSON.stringify([...(definicao.tipos_projeto ?? [])].sort())
 
   const isDirty =
     tipoInsumo !== definicao.tipo_insumo ||
     agenteResp !== definicao.agente_responsavel ||
-    promptTemplate !== collapseBlankLines(definicao.prompt_template ?? '')
+    promptTemplate !== collapseBlankLines(definicao.prompt_template ?? '') ||
+    tiposProjetoChanged
 
   const isValid = tipoInsumo.trim().length > 0
 
@@ -874,6 +892,7 @@ function DefinicaoEditor({
         tipo_insumo: tipoInsumo,
         agente_responsavel: agenteResp,
         prompt_template: promptTemplate || null,
+        tipos_projeto: tiposProjeto.length > 0 ? tiposProjeto : null,
       })
       toast('Definição salva')
       onSaved()
@@ -974,6 +993,59 @@ function DefinicaoEditor({
           </div>
         </div>
 
+        {/* Tipos de Projeto */}
+        <div className="rounded-xl border border-border bg-card/50 p-5 ring-inset-subtle space-y-3">
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
+              Visibilidade por Tipo de Projeto
+            </p>
+            <InfoTooltip content="Restringe esta configuração a tipos específicos de projeto. Quando nenhum tipo é selecionado, a configuração aparece para TODOS os projetos independente do tipo." />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {TIPO_PROJETO_OPTIONS.map((opt) => {
+              const active = tiposProjeto.includes(opt.value)
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    setTiposProjeto(prev =>
+                      prev.includes(opt.value)
+                        ? prev.filter(t => t !== opt.value)
+                        : [...prev, opt.value],
+                    )
+                  }
+                  className={cn(
+                    'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-all',
+                    active
+                      ? 'border-primary bg-primary/15 text-primary'
+                      : 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+                  )}
+                >
+                  {active && <Check className="w-3 h-3" />}
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+          {tiposProjeto.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground/60">
+              Nenhum tipo selecionado — aparece para <strong>todos os projetos</strong>.
+            </p>
+          ) : (
+            <p className="text-[11px] text-muted-foreground/60">
+              Restrito a {tiposProjeto.length} tipo{tiposProjeto.length > 1 ? 's' : ''}.{' '}
+              <button
+                type="button"
+                className="underline hover:text-muted-foreground transition-colors"
+                onClick={() => setTiposProjeto([])}
+              >
+                Limpar seleção
+              </button>
+            </p>
+          )}
+        </div>
+
         {/* Prompt Template — Textarea simples (BlockNote causava centenas de linhas em branco) */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
@@ -1023,6 +1095,7 @@ function DefinicaoEditor({
                 setTipoInsumo(definicao.tipo_insumo)
                 setAgenteResp(definicao.agente_responsavel)
                 setPromptTemplate(collapseBlankLines(definicao.prompt_template ?? ''))
+                setTiposProjeto(definicao.tipos_projeto ?? [])
                 setTemplateSelectValue('__none__')
               }}
               className="text-muted-foreground h-7 text-xs"
@@ -1902,6 +1975,88 @@ function SecaoAgentes() {
   )
 }
 
+// ─── Toggle Switch ───────────────────────────────────────────────────────────
+
+function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        checked ? 'gradient-primary' : 'bg-muted',
+      )}
+    >
+      <span
+        className={cn(
+          'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md ring-0 transition-transform duration-200',
+          checked ? 'translate-x-5' : 'translate-x-0',
+        )}
+      />
+    </button>
+  )
+}
+
+// ─── Seção: Configurações ─────────────────────────────────────────────────────
+
+function SecaoConfiguracoes() {
+  const { data: config, isLoading } = useConfiguracoesSistema()
+  const { mutate: setConfiguracao, isPending } = useSetConfiguracao()
+
+  function handleAdvisorToggle(value: boolean) {
+    setConfiguracao(
+      { chave: CONFIG_KEYS.ADVISOR_ENABLED, valor: value },
+      {
+        onSuccess: () => toast(value ? 'ADVISOR habilitado' : 'ADVISOR desabilitado'),
+        onError: (err) => toast(err instanceof Error ? err.message : 'Erro ao salvar configuração', 'err'),
+      },
+    )
+  }
+
+  const advisorEnabled = config?.advisor_enabled ?? true
+
+  return (
+    <div className="space-y-8 max-w-2xl">
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Funcionalidades</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Habilite ou desabilite recursos da interface. As configurações são salvas por empresa.
+          </p>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
+          {/* ADVISOR row */}
+          <div className="flex items-center gap-4 px-5 py-4">
+            <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shrink-0 ring-inset-subtle">
+              <Lightbulb className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground leading-tight">ADVISOR</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                Widget flutuante que analisa o projeto com IA e sugere a próxima ação de maior impacto. Aparece na página do projeto.
+              </p>
+            </div>
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
+            ) : (
+              <Toggle
+                checked={advisorEnabled}
+                onChange={handleAdvisorToggle}
+                disabled={isPending}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── AdminPage ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS: { id: Secao; label: string; icon: React.ElementType; description: string; tooltip: string }[] = [
@@ -1926,6 +2081,13 @@ const NAV_ITEMS: { id: Secao; label: string; icon: React.ElementType; descriptio
     description: 'Configuração dos agentes de IA',
     tooltip: 'Para que serve: Configurar cada agente de IA (SCRIBE, ARCH, etc.): nome, modelo, temperatura, system prompt e prompt de chat. O Playground permite testar o agente antes de usar no projeto.\n\nOnde aparece: Os agentes são usados ao gerar artefatos (Texto IA) e no chat ao lado da página de resultado.',
   },
+  {
+    id: 'configuracoes',
+    label: 'Configurações',
+    icon: SlidersHorizontal,
+    description: 'Funcionalidades e preferências do sistema',
+    tooltip: 'Habilite ou desabilite funcionalidades da interface, como o ADVISOR de IA.',
+  },
 ]
 
 export function AdminPage() {
@@ -1939,6 +2101,7 @@ export function AdminPage() {
     atividades: atividades.length,
     definicoes: definicoes.length,
     agentes: agentes.length,
+    configuracoes: 0,
   }
 
   const activeNav = NAV_ITEMS.find((n) => n.id === secao)!
@@ -2044,6 +2207,7 @@ export function AdminPage() {
             />
           )}
           {secao === 'agentes' && <SecaoAgentes />}
+          {secao === 'configuracoes' && <SecaoConfiguracoes />}
         </div>
       </div>
     </div>

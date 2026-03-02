@@ -65,6 +65,7 @@ export function useAdvisor(
   const [error, setError] = useState<string | null>(null)
   const lastCallRef = useRef<number>(0)
   const lastKeyRef = useRef<string>('')
+  const lastDisciplinaRef = useRef<string>(disciplinaAtual)
 
   // Chave estável que muda só quando o progresso muda de forma significativa
   const progressKey = disciplinasProgresso
@@ -87,21 +88,23 @@ export function useAdvisor(
     }
   }
 
-  // Dispara na primeira carga e quando o progresso mudar
+  // Dispara na primeira carga, quando o progresso mudar ou ao trocar de disciplina
   useEffect(() => {
     if (!projeto) return
     const now = Date.now()
     const timeSince = now - lastCallRef.current
     const progressChanged = progressKey !== '' && progressKey !== lastKeyRef.current
+    const disciplinaChanged = disciplinaAtual !== lastDisciplinaRef.current
 
     const isFirstCall = lastCallRef.current === 0
-    const cooldownOk = timeSince > 60_000 // 60s mínimo entre chamadas por mudança de progresso
+    const cooldownOk = timeSince > 30_000 // 30s mínimo entre chamadas
 
-    if (isFirstCall || (progressChanged && cooldownOk)) {
+    if (isFirstCall || (progressChanged && cooldownOk) || (disciplinaChanged && cooldownOk)) {
+      lastDisciplinaRef.current = disciplinaAtual
       analisar()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projeto?.id, progressKey])
+  }, [projeto?.id, progressKey, disciplinaAtual])
 
   return { recomendacao, isLoading, error, analisar }
 }

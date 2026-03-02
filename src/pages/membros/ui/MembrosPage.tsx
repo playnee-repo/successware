@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@supabase/supabase-js'
 import { Home, UserPlus, Trash2, Shield, User, Loader2, ChevronRight, Users } from 'lucide-react'
-import { supabase } from '@/shared/api/supabase'
 import { useAuth } from '@/shared/auth'
+import { membroService } from '@/shared/api/container'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Badge } from '@/shared/ui/badge'
@@ -27,22 +27,13 @@ interface Membro {
 function useMembros() {
   return useQuery({
     queryKey: ['membros'],
-    queryFn: async (): Promise<Membro[]> => {
-      const { data, error } = await supabase.rpc('listar_membros')
-      if (error) throw error
-      return data as Membro[]
-    },
+    queryFn: () => membroService.findAll(),
   })
 }
 
 // Retorna 'ok' | 'not_found'
 async function tentarAdicionarPorEmail(email: string, role: string): Promise<'ok' | 'not_found'> {
-  const { data, error } = await supabase.rpc('adicionar_membro_por_email', {
-    p_email: email,
-    p_role: role,
-  })
-  if (error) throw new Error(error.message)
-  return data as 'ok' | 'not_found'
+  return membroService.addByEmail(email, role)
 }
 
 async function criarContaEAdicionar(email: string, password: string, role: string) {
@@ -55,20 +46,13 @@ async function criarContaEAdicionar(email: string, password: string, role: strin
   if (error || !data.user) throw new Error(error?.message ?? 'Erro ao criar usuário')
   await tempClient.auth.signOut()
 
-  const { error: rpcError } = await supabase.rpc('adicionar_membro', {
-    p_user_id: data.user.id,
-    p_role: role,
-  })
-  if (rpcError) throw new Error(rpcError.message)
+  await membroService.add(data.user.id, role)
 }
 
 function useRemoverMembro() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (userId: string) => {
-      const { error } = await supabase.rpc('remover_membro', { p_user_id: userId })
-      if (error) throw new Error(error.message)
-    },
+    mutationFn: (userId: string) => membroService.remove(userId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['membros'] }),
   })
 }
@@ -76,13 +60,8 @@ function useRemoverMembro() {
 function useAtualizarRole() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const { error } = await supabase.rpc('adicionar_membro', {
-        p_user_id: userId,
-        p_role: role,
-      })
-      if (error) throw new Error(error.message)
-    },
+    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
+      membroService.add(userId, role),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['membros'] }),
   })
 }

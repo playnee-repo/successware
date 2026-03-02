@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query'
 import { FileDown, Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { supabase } from '@/shared/api/supabase'
+import { artefatoService } from '@/shared/api/container'
 import type { Project } from '@/entities/project/model/types'
 import type { Iteration } from '@/entities/iteration/model/types'
+import type { Atividade, Artefato } from '@/entities/artifact/model/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -173,61 +174,55 @@ const PRINT_CSS = `
 
 // ─── Data hook ────────────────────────────────────────────────────────────────
 
+function buildExportDisciplinas(atividades: Atividade[], artefatos: Artefato[]): ExportDisciplina[] {
+  const insumoMap = new Map<string, Artefato>()
+  for (const ins of artefatos) {
+    if (!insumoMap.has(ins.atividade_id)) insumoMap.set(ins.atividade_id, ins)
+  }
+
+  const discOrder: string[] = []
+  const discMap = new Map<string, ExportAtividade[]>()
+
+  for (const atv of atividades) {
+    if (!discMap.has(atv.disciplina)) {
+      discOrder.push(atv.disciplina)
+      discMap.set(atv.disciplina, [])
+    }
+    const ins = insumoMap.get(atv.id)
+    const raw = ins?.conteudo_json as Record<string, unknown> | null
+    discMap.get(atv.disciplina)!.push({
+      id: atv.id,
+      nome: atv.nome,
+      descricao: atv.descricao,
+      disciplina: atv.disciplina,
+      ordem: atv.ordem,
+      agente: atv.agente,
+      insumo: ins
+        ? {
+            versao: ins.versao,
+            status: ins.status_aprovacao,
+            tipo: ins.tipo ?? 'texto',
+            conteudo_md: typeof raw?.md === 'string' ? raw.md : null,
+            link_url: typeof raw?.url === 'string' ? raw.url : null,
+            link_titulo: typeof raw?.titulo === 'string' ? raw.titulo : null,
+          }
+        : undefined,
+    })
+  }
+
+  return discOrder.map((id) => ({
+    id,
+    label: DISC_LABELS[id] ?? id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, ' '),
+    atividades: discMap.get(id) ?? [],
+  }))
+}
+
 function useExportData(projectId: string, iteracaoId: string | undefined) {
   return useQuery({
     queryKey: ['export', projectId, iteracaoId],
     queryFn: async (): Promise<ExportDisciplina[]> => {
-      const [{ data: atividades }, { data: insumos }] = await Promise.all([
-        supabase.from('atividades').select('*').order('disciplina').order('ordem'),
-        supabase
-          .from('artefatos')
-          .select('*')
-          .eq('iteracao_id', iteracaoId!)
-          .order('versao', { ascending: false }),
-      ])
-
-      // Map atividade_id → latest insumo
-      const insumoMap = new Map<string, NonNullable<typeof insumos>[0]>()
-      for (const ins of insumos ?? []) {
-        if (!insumoMap.has(ins.atividade_id)) insumoMap.set(ins.atividade_id, ins)
-      }
-
-      // Group by discipline preserving order
-      const discOrder: string[] = []
-      const discMap = new Map<string, ExportAtividade[]>()
-
-      for (const atv of atividades ?? []) {
-        if (!discMap.has(atv.disciplina)) {
-          discOrder.push(atv.disciplina)
-          discMap.set(atv.disciplina, [])
-        }
-        const ins = insumoMap.get(atv.id)
-        const raw = ins?.conteudo_json as Record<string, unknown> | null
-        discMap.get(atv.disciplina)!.push({
-          id: atv.id,
-          nome: atv.nome,
-          descricao: atv.descricao,
-          disciplina: atv.disciplina,
-          ordem: atv.ordem,
-          agente: atv.agente,
-          insumo: ins
-            ? {
-                versao: ins.versao,
-                status: ins.status_aprovacao,
-                tipo: (ins as Record<string, unknown>).tipo as string ?? 'texto',
-                conteudo_md: typeof raw?.md === 'string' ? raw.md : null,
-                link_url: typeof raw?.url === 'string' ? raw.url : null,
-                link_titulo: typeof raw?.titulo === 'string' ? raw.titulo : null,
-              }
-            : undefined,
-        })
-      }
-
-      return discOrder.map((id) => ({
-        id,
-        label: DISC_LABELS[id] ?? id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, ' '),
-        atividades: discMap.get(id) ?? [],
-      }))
+      const { atividades, artefatos } = await artefatoService.getExportData(iteracaoId!)
+      return buildExportDisciplinas(atividades, artefatos)
     },
     enabled: !!iteracaoId && !!projectId,
     staleTime: 30_000,

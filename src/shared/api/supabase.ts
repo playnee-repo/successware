@@ -107,11 +107,13 @@ export type Database = {
           tipo_insumo: string
           agente_responsavel: string
           prompt_template: string | null
+          tipos_projeto: string[] | null
           criado_em: string
         }
-        Insert: Omit<Database['public']['Tables']['configuracoes_atividade']['Row'], 'id' | 'criado_em'> & {
+        Insert: Omit<Database['public']['Tables']['configuracoes_atividade']['Row'], 'id' | 'criado_em' | 'tipos_projeto'> & {
           id?: string
           criado_em?: string
+          tipos_projeto?: string[] | null
         }
         Update: Partial<Database['public']['Tables']['configuracoes_atividade']['Insert']>
       }
@@ -198,6 +200,36 @@ export type Database = {
           atualizado_em?: string
         }
         Update: Partial<Database['public']['Tables']['agentes_config']['Insert']>
+      }
+      configuracoes_sistema: {
+        Row: {
+          id: string
+          empresa_id: string
+          chave: string
+          valor: unknown // jsonb: boolean | string | number | object | null
+          atualizado_em: string
+          atualizado_por: string | null
+        }
+        Insert: Omit<Database['public']['Tables']['configuracoes_sistema']['Row'], 'id' | 'atualizado_em'> & {
+          id?: string
+          atualizado_em?: string
+        }
+        Update: Partial<Database['public']['Tables']['configuracoes_sistema']['Insert']>
+      }
+    }
+    Functions: {
+      set_configuracao: {
+        Args: { p_chave: string; p_valor: unknown }
+        Returns: void
+      }
+      progresso_projeto: {
+        Args: { p_projeto_id: string }
+        Returns: {
+          disciplina: string
+          total_artefatos: number
+          aprovados: number
+          progresso: number
+        }[]
       }
     }
   }

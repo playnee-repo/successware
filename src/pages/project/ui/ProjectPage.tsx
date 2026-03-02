@@ -77,7 +77,7 @@ interface DisciplinaViewProps {
 }
 
 function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) {
-  const { data: atividades = [], isLoading } = useAtividadesComProgresso(disciplina, iteracao.id)
+  const { data: atividades = [], isLoading } = useAtividadesComProgresso(disciplina, iteracao.id, projeto.tipo)
 
   const totalProgresso = atividades.length > 0
     ? Math.round(atividades.reduce((sum, a) => sum + a.progresso, 0) / atividades.length)

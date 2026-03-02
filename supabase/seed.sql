@@ -49,14 +49,14 @@ insert into atividades (id, disciplina, nome, descricao, agente, ordem, icone) v
 -- ============================================================
 
 -- DESCOBERTA: Briefing Inicial
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd1000001-0000-0000-0000-000000000001',
     'a1000001-0000-0000-0000-000000000001',
     'Briefing Inicial',
     'briefing',
     'SCRIBE',
-    '{"type": "object"}',
+
     'Você é SCRIBE, especialista em levantamento inicial de projetos.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -101,14 +101,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- DESCOBERTA: Análise de Stakeholders
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd1000002-0000-0000-0000-000000000001',
     'a1000001-0000-0000-0000-000000000002',
     'Análise de Stakeholders',
     'stakeholders',
     'SCRIBE',
-    '{"type": "object"}',
+
     'Você é SCRIBE, especialista em análise de stakeholders.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -142,14 +142,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- DESCOBERTA: Benchmarking
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd1000003-0000-0000-0000-000000000001',
     'a1000001-0000-0000-0000-000000000003',
     'Benchmarking',
     'benchmarking',
     'SCRIBE',
-    '{"type": "object"}',
+
     'Você é SCRIBE, especialista em análise competitiva e benchmarking.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -192,14 +192,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: Elicitação de Requisitos
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd2000001-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000001',
     'Requisitos Funcionais',
     'requisitos_funcionais',
     'SCRIBE',
-    '{"type": "object"}',
+
     'Você é SCRIBE, especialista em levantamento de requisitos.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -237,14 +237,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: Prototipação de Interface
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd2000002-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000002',
     'Prototipação de Interface',
     'prototipacao',
     'SCRIBE',
-    '{"type": "object"}',
+
     'Você é SCRIBE, especialista em UX e prototipação de interfaces.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -282,14 +282,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: Critérios de Aceitação
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd2000003-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000003',
     'Critérios de Aceitação',
     'criterios_aceitacao',
     'SCRIBE',
-    '{"type": "object"}',
+
     'Você é SCRIBE, especialista em critérios de aceitação BDD.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -326,14 +326,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- REQUISITOS: User Stories
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd2000004-0000-0000-0000-000000000001',
     'a2000001-0000-0000-0000-000000000004',
     'User Stories',
     'user_stories',
     'SCRIBE',
-    '{"type": "object"}',
+
     'Você é SCRIBE, especialista em Engenharia de Requisitos ágil.
 Projeto: {{projeto_nome}}
 Módulo/foco da iteração: {{iteracao_modulo}}
@@ -365,14 +365,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- ARQUITETURA: Diagrama de Contexto
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd3000001-0000-0000-0000-000000000001',
     'a3000001-0000-0000-0000-000000000001',
     'Diagrama de Contexto',
     'diagrama_contexto',
     'ARCH',
-    '{"type": "object"}',
+
     'Você é ARCH, especialista em Arquitetura de Software.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -419,14 +419,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- ARQUITETURA: Modelo de Dados
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd3000002-0000-0000-0000-000000000001',
     'a3000001-0000-0000-0000-000000000002',
     'Modelo de Dados',
     'modelo_dados',
     'ARCH',
-    '{"type": "object"}',
+
     'Você é ARCH, especialista em modelagem de dados.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -468,14 +468,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- ARQUITETURA: Stack Tecnológico
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd3000003-0000-0000-0000-000000000001',
     'a3000001-0000-0000-0000-000000000003',
     'Stack Tecnológico',
     'stack',
     'ARCH',
-    '{"type": "object"}',
+
     'Você é ARCH, especialista em arquitetura e escolha de tecnologias.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -518,14 +518,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- CONSTRUÇÃO: Setup do Ambiente
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd4000001-0000-0000-0000-000000000001',
     'a4000001-0000-0000-0000-000000000001',
     'Setup do Ambiente',
     'setup',
     'FORGE',
-    '{"type": "object"}',
+
     'Você é FORGE, especialista em setup e configuração de ambientes de desenvolvimento.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -581,14 +581,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- CONSTRUÇÃO: Implementação Core
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd4000002-0000-0000-0000-000000000001',
     'a4000001-0000-0000-0000-000000000002',
     'Implementação Core',
     'implementacao',
     'FORGE',
-    '{"type": "object"}',
+
     'Você é FORGE, especialista em desenvolvimento e implementação de software.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -638,14 +638,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- CONSTRUÇÃO: Integração de APIs
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd4000003-0000-0000-0000-000000000001',
     'a4000001-0000-0000-0000-000000000003',
     'Integração de APIs',
     'apis',
     'FORGE',
-    '{"type": "object"}',
+
     'Você é FORGE, especialista em integração de APIs e serviços externos.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -693,14 +693,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- QUALIDADE: Plano de Testes
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd5000001-0000-0000-0000-000000000001',
     'a5000001-0000-0000-0000-000000000001',
     'Plano de Testes',
     'plano_testes',
     'GUARDIAN',
-    '{"type": "object"}',
+
     'Você é GUARDIAN, especialista em qualidade e testes de software.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -747,14 +747,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- QUALIDADE: Testes de Aceitação
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd5000002-0000-0000-0000-000000000001',
     'a5000001-0000-0000-0000-000000000002',
     'Testes de Aceitação',
     'testes_aceitacao',
     'GUARDIAN',
-    '{"type": "object"}',
+
     'Você é GUARDIAN, especialista em testes de aceitação BDD.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -791,14 +791,14 @@ Retorne APENAS o Markdown, sem blocos de código JSON, sem explicações adicion
   );
 
 -- QUALIDADE: Revisão de Segurança
-insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, schema_metadado_json, prompt_template) values
+insert into configuracoes_atividade (id, atividade_id, nome, tipo_insumo, agente_responsavel, prompt_template) values
   (
     'd5000003-0000-0000-0000-000000000001',
     'a5000001-0000-0000-0000-000000000003',
     'Revisão de Segurança',
     'revisao_seguranca',
     'GUARDIAN',
-    '{"type": "object"}',
+
     'Você é GUARDIAN, especialista em segurança de aplicações web e OWASP.
 Projeto: {{projeto_nome}}
 Módulo/foco: {{iteracao_modulo}}
@@ -918,3 +918,51 @@ where empresa_id is null;
 
 update documentos_projeto set empresa_id = '00000000-0000-0000-0000-000000000001'
 where empresa_id is null;
+
+-- ============================================================
+-- USUÁRIO DEMO (desenvolvimento local)
+-- Credenciais: admin@demo.com / password123
+-- ============================================================
+
+insert into auth.users (
+  instance_id, id, aud, role,
+  email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) values (
+  '00000000-0000-0000-0000-000000000000',
+  '00000000-0000-0000-0000-000000000002',
+  'authenticated',
+  'authenticated',
+  'admin@demo.com',
+  crypt('password123', gen_salt('bf')),
+  now(),
+  '{"provider":"email","providers":["email"]}'::jsonb,
+  '{"email_verified":true}'::jsonb,
+  now(), now(),
+  '', '', '', ''
+) on conflict (id) do nothing;
+
+insert into auth.identities (
+  id, user_id, provider_id, identity_data, provider,
+  last_sign_in_at, created_at, updated_at
+) values (
+  '00000000-0000-0000-0000-000000000003',
+  '00000000-0000-0000-0000-000000000002',
+  'admin@demo.com',
+  jsonb_build_object(
+    'sub',            '00000000-0000-0000-0000-000000000002',
+    'email',          'admin@demo.com',
+    'email_verified', true
+  ),
+  'email',
+  now(), now(), now()
+) on conflict (provider_id, provider) do nothing;
+
+insert into membros_empresa (empresa_id, user_id, role)
+values (
+  '00000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-000000000002',
+  'admin'
+) on conflict (empresa_id, user_id) do nothing;

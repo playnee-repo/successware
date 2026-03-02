@@ -4,6 +4,20 @@ export type ArtefatoTipo = 'texto' | 'link' | 'documento'
 export type DefaultDisciplina = 'descoberta' | 'requisitos' | 'arquitetura' | 'construcao' | 'qualidade'
 export type Disciplina = string
 
+export interface CreateArtefatoInput {
+  iteracao_id: string
+  atividade_id: string
+  configuracao_id: string | null
+  nome: string
+  tipo?: ArtefatoTipo
+  conteudo_json: Record<string, unknown>
+  versao: number
+  agente_autor: string
+  status_aprovacao: ApprovalStatus
+  preferencia_view?: ViewPreference
+  empresa_id: string | null
+}
+
 export interface Atividade {
   id: string
   disciplina: Disciplina
@@ -22,6 +36,7 @@ export interface ConfiguracaoAtividade {
   tipo_insumo: string
   agente_responsavel: string
   prompt_template: string | null
+  tipos_projeto?: string[] | null  // null/undefined = todos os tipos
   criado_em: string
 }
 

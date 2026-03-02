@@ -16,4 +16,5 @@ export interface CreateIterationInput {
   nome: string
   modulo_foco?: string
   ordem?: number
+  status?: IterationStatus
 }

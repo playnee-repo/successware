@@ -3,6 +3,7 @@ import { Sparkles, GripVertical } from 'lucide-react'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { AgentChat } from '@/widgets/agent-chat/ui/AgentChat'
 import { AdvisorWidget } from '@/widgets/advisor/ui/AdvisorWidget'
+import { useConfiguracoesSistema } from '@/entities/config/model/useConfiguracoesSistema'
 import type { Iteration } from '@/entities/iteration/model/types'
 import type { ChatContext } from '@/entities/agent/model/types'
 import type { Project } from '@/entities/project/model/types'
@@ -36,6 +37,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, agentId, chatContext, projeto, children }: AppShellProps) {
+  const { data: config, isLoading: configLoading } = useConfiguracoesSistema()
+  // Aguarda a config carregar para evitar flash — default habilitado após carga
+  const advisorEnabled = !configLoading && (config?.advisor_enabled ?? true)
+
   const [chatWidth, setChatWidth] = useState(getStoredChatWidth)
   const resizeRef = useRef({ startX: 0, startWidth: 0 })
   const lastWidthRef = useRef(chatWidth)
@@ -78,7 +83,7 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
         <div className="flex-1 flex flex-col overflow-hidden">
           {children}
         </div>
-        {projeto && (
+        {projeto && advisorEnabled && (
           <AdvisorWidget projeto={projeto} disciplinaAtual={disciplina} />
         )}
       </div>
