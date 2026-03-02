@@ -936,7 +936,7 @@ insert into auth.users (
   'authenticated',
   'authenticated',
   'admin@demo.com',
-  crypt('password123', gen_salt('bf')),
+  extensions.crypt('password123', extensions.gen_salt('bf')),
   now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
   '{"email_verified":true}'::jsonb,
