@@ -9,6 +9,23 @@ values ('00000000-0000-0000-0000-000000000001', 'Empresa Demo', 'demo')
 on conflict (slug) do nothing;
 
 -- ============================================================
+-- DISCIPLINAS (lookup: nome, descrição, cor, ordem)
+-- Deve existir antes das atividades; migration 026 também insere.
+-- ============================================================
+insert into disciplinas (id, nome, descricao, cor, icone, ordem) values
+  ('descoberta',  'Descoberta',                'Levantamento inicial de necessidades, stakeholders e contexto de negócio.',                   'violet',  'Search',   1),
+  ('requisitos',  'Engenharia de Requisitos',   'Elicitação, documentação e validação de requisitos funcionais e não-funcionais.',             'indigo',  'FileText', 2),
+  ('arquitetura', 'Arquitetura',                'Design da arquitetura do sistema, modelo de dados e decisões técnicas.',                      'blue',    'Layers',   3),
+  ('construcao',  'Construção',                 'Implementação das funcionalidades conforme os requisitos aprovados.',                         'orange',  'Hammer',   4),
+  ('qualidade',   'Qualidade',                  'Plano de testes, validação e revisão de segurança do sistema.',                               'emerald', 'Shield',   5)
+on conflict (id) do update set
+  nome = excluded.nome,
+  descricao = excluded.descricao,
+  cor = excluded.cor,
+  icone = excluded.icone,
+  ordem = excluded.ordem;
+
+-- ============================================================
 -- ATIVIDADES POR DISCIPLINA (templates globais)
 -- ============================================================
 

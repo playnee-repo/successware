@@ -20,20 +20,13 @@ import { useCreateIteration, useActivateIteration } from '@/features/manage-iter
 import { cn } from '@/shared/lib/utils'
 import type { Iteration } from '@/entities/iteration/model/types'
 import type { Project } from '@/entities/project/model/types'
+import { useDisciplinaMap, getDisciplinaLabel } from '@/entities/discipline/model/useDisciplinas'
 
 interface HeaderProps {
   project: Project
   iteracoes: Iteration[]
   activeIteracao: Iteration | null
   disciplina?: string
-}
-
-const DISCIPLINA_LABELS: Record<string, string> = {
-  descoberta: 'Descoberta',
-  requisitos: 'Eng. Requisitos',
-  arquitetura: 'Arquitetura',
-  construcao: 'Construção',
-  qualidade: 'Qualidade',
 }
 
 export function Header({ project, iteracoes, activeIteracao, disciplina }: HeaderProps) {
@@ -44,8 +37,9 @@ export function Header({ project, iteracoes, activeIteracao, disciplina }: Heade
   const [newModulo, setNewModulo] = useState('')
   const createIteration = useCreateIteration()
   const activateIteration = useActivateIteration()
+  const discMap = useDisciplinaMap()
 
-  const disciplinaLabel = disciplina ? (DISCIPLINA_LABELS[disciplina] ?? disciplina) : null
+  const disciplinaLabel = disciplina ? getDisciplinaLabel(discMap, disciplina) : null
 
   const handleCreate = async () => {
     if (!newNome.trim()) return

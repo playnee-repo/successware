@@ -13,6 +13,7 @@ import type { Project } from '@/entities/project/model/types'
 import type { Iteration } from '@/entities/iteration/model/types'
 import type { Disciplina } from '@/entities/artifact/model/types'
 import { useProjectProgress, calcularProgressoGlobal } from '@/entities/project/model/useProjectProgress'
+import { useDisciplinaMap, getDisciplinaLabel, getDisciplinaDescricao, getDisciplinaClasses } from '@/entities/discipline/model/useDisciplinas'
 
 function useProject(projectId: string) {
   return useQuery({
@@ -30,45 +31,7 @@ function useProject(projectId: string) {
   })
 }
 
-const DISCIPLINA_TITLES: Record<string, string> = {
-  descoberta: 'Descoberta',
-  requisitos: 'Engenharia de Requisitos',
-  arquitetura: 'Arquitetura',
-  construcao: 'Construção',
-  qualidade: 'Qualidade',
-}
-
-const DISCIPLINA_DESCRIPTIONS: Record<string, string> = {
-  descoberta: 'Levantamento inicial de necessidades, stakeholders e contexto de negócio.',
-  requisitos: 'Elicitação, documentação e validação de requisitos funcionais e não-funcionais.',
-  arquitetura: 'Design da arquitetura do sistema, modelo de dados e decisões técnicas.',
-  construcao: 'Implementação das funcionalidades conforme os requisitos aprovados.',
-  qualidade: 'Plano de testes, validação e revisão de segurança do sistema.',
-}
-
-const DISCIPLINA_ACCENT: Record<string, string> = {
-  descoberta: 'from-violet-600/10',
-  requisitos: 'from-indigo-600/10',
-  arquitetura: 'from-blue-600/10',
-  construcao: 'from-orange-600/10',
-  qualidade: 'from-emerald-600/10',
-}
-
-const DISCIPLINA_ICON_COLOR: Record<string, string> = {
-  descoberta: 'text-violet-400 bg-violet-500/10 border-violet-500/20',
-  requisitos: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-  arquitetura: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-  construcao: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
-  qualidade: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-}
-
-const DISCIPLINA_PROGRESS_COLOR: Record<string, string> = {
-  descoberta: 'text-violet-400',
-  requisitos: 'text-indigo-400',
-  arquitetura: 'text-blue-400',
-  construcao: 'text-orange-400',
-  qualidade: 'text-emerald-400',
-}
+// Disciplina labels, descriptions and colors now come from useDisciplinaMap()
 
 interface DisciplinaViewProps {
   disciplina: Disciplina
@@ -78,6 +41,8 @@ interface DisciplinaViewProps {
 
 function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) {
   const { data: atividades = [], isLoading } = useAtividadesComProgresso(disciplina, iteracao.id, projeto.tipo)
+  const discMap = useDisciplinaMap()
+  const discClasses = getDisciplinaClasses(discMap, disciplina)
 
   const totalProgresso = atividades.length > 0
     ? Math.round(atividades.reduce((sum, a) => sum + a.progresso, 0) / atividades.length)
@@ -86,9 +51,9 @@ function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) 
   const insumosAprovados = atividades.reduce((sum, a) => sum + a.artefatos_aprovados, 0)
   const totalInsumos = atividades.reduce((sum, a) => sum + a.total_artefatos, 0)
 
-  const accentGradient = DISCIPLINA_ACCENT[disciplina] ?? 'from-indigo-600/10'
-  const iconClass = DISCIPLINA_ICON_COLOR[disciplina] ?? 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20'
-  const progressColor = DISCIPLINA_PROGRESS_COLOR[disciplina] ?? 'text-indigo-400'
+  const accentGradient = discClasses.gradient
+  const iconClass = `${discClasses.text} ${discClasses.bg} ${discClasses.border}`
+  const progressColor = discClasses.text
 
   return (
     <div className="space-y-6">
@@ -110,10 +75,10 @@ function DisciplinaView({ disciplina, projeto, iteracao }: DisciplinaViewProps) 
               </div>
               <div>
                 <h2 className="text-base font-bold text-foreground leading-tight">
-                  {DISCIPLINA_TITLES[disciplina] ?? disciplina.charAt(0).toUpperCase() + disciplina.slice(1).replace(/_/g, ' ')}
+                  {getDisciplinaLabel(discMap, disciplina)}
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1 leading-snug max-w-md">
-                  {DISCIPLINA_DESCRIPTIONS[disciplina] ?? `Atividades da disciplina ${disciplina}.`}
+                  {getDisciplinaDescricao(discMap, disciplina) || `Atividades da disciplina ${getDisciplinaLabel(discMap, disciplina)}.`}
                 </p>
               </div>
             </div>

@@ -70,6 +70,7 @@ export interface AtividadeComProgresso extends Atividade {
   artefatos_aprovados: number
 }
 
+/** @deprecated Use useDisciplinaMap() + getDisciplinaLabel() de entities/discipline */
 export const DISCIPLINA_LABELS: Record<string, string> = {
   descoberta: 'Descoberta',
   requisitos: 'Requisitos',

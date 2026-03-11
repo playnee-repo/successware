@@ -37,6 +37,7 @@ import { SupabaseMensagemRepository } from '@/entities/agent/api/SupabaseMensage
 import { SupabaseDocumentoRepository } from '@/entities/document/api/SupabaseDocumentoRepository'
 import { SupabaseConfiguracaoSistemaRepository } from '@/entities/config/api/SupabaseConfiguracaoSistemaRepository'
 import { SupabaseMembroRepository } from '@/entities/member/api/SupabaseMembroRepository'
+import { SupabaseDisciplinaRepository } from '@/entities/discipline/api/SupabaseDisciplinaRepository'
 
 // ── Services ────────────────────────────────────────────────────────────────
 import { ProjetoService } from '@/entities/project/model/ProjetoService'
@@ -60,6 +61,7 @@ export const mensagemRepo            = new SupabaseMensagemRepository(supabase)
 export const documentoRepo           = new SupabaseDocumentoRepository(supabase)
 export const configuracaoSistemaRepo = new SupabaseConfiguracaoSistemaRepository(supabase)
 export const membroRepo              = new SupabaseMembroRepository(supabase)
+export const disciplinaRepo          = new SupabaseDisciplinaRepository(supabase)
 
 // ── Service singletons ───────────────────────────────────────────────────────
 export const projetoService             = new ProjetoService(projetoRepo)

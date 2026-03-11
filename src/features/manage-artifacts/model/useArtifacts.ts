@@ -15,9 +15,10 @@ import type {
 // ==============================
 // DISCIPLINAS (distinct from DB)
 // ==============================
-export function useDisciplinas() {
+/** @deprecated Use useDisciplinas() de entities/discipline */
+export function useDistinctDisciplinas() {
   return useQuery({
-    queryKey: ['disciplinas'],
+    queryKey: ['disciplinas-distinct'],
     queryFn: () => artefatoService.getDistinctDisciplinas(),
   })
 }

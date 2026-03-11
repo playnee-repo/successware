@@ -5,7 +5,7 @@ import {
   TrendingUp, Settings, CircleDot, BookOpen,
 } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
-import { useDisciplinas } from '@/features/manage-artifacts/model/useArtifacts'
+import { useDisciplinas } from '@/entities/discipline/model/useDisciplinas'
 import { useAllAgentes } from '@/features/manage-admin/model/useAdminAgentes'
 import { getAgenteColor } from '@/shared/lib/agent-colors'
 import { useProjectProgress } from '@/entities/project/model/useProjectProgress'
@@ -15,69 +15,24 @@ interface DisciplinaConfig {
   id: string
   label: string
   icon: React.ComponentType<{ className?: string }>
-  agente: string
   color: string
-  agentColor: string
   dotColor: string
 }
 
-const DEFAULT_DISCIPLINAS: Record<string, Omit<DisciplinaConfig, 'id'>> = {
-  descoberta: {
-    label: 'Descoberta',
-    icon: Search,
-    agente: 'SCRIBE',
-    color: 'text-violet-400',
-    agentColor: 'bg-violet-500/20 text-violet-400',
-    dotColor: 'bg-violet-500',
-  },
-  requisitos: {
-    label: 'Eng. Requisitos',
-    icon: FileText,
-    agente: 'SCRIBE',
-    color: 'text-indigo-400',
-    agentColor: 'bg-indigo-500/20 text-indigo-400',
-    dotColor: 'bg-indigo-500',
-  },
-  arquitetura: {
-    label: 'Arquitetura',
-    icon: Layers,
-    agente: 'ARCH',
-    color: 'text-blue-400',
-    agentColor: 'bg-blue-500/20 text-blue-400',
-    dotColor: 'bg-blue-500',
-  },
-  construcao: {
-    label: 'Construção',
-    icon: Hammer,
-    agente: 'FORGE',
-    color: 'text-orange-400',
-    agentColor: 'bg-orange-500/20 text-orange-400',
-    dotColor: 'bg-orange-500',
-  },
-  qualidade: {
-    label: 'Qualidade',
-    icon: Shield,
-    agente: 'GUARDIAN',
-    color: 'text-emerald-400',
-    agentColor: 'bg-emerald-500/20 text-emerald-400',
-    dotColor: 'bg-emerald-500',
-  },
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Search, FileText, Layers, Hammer, Shield,
 }
 
-const DEFAULT_ORDER = ['descoberta', 'requisitos', 'arquitetura', 'construcao', 'qualidade']
-
-const FALLBACK_CONFIG: Omit<DisciplinaConfig, 'id'> = {
-  label: '',
-  icon: CircleDot,
-  agente: 'SCRIBE',
-  color: 'text-cyan-400',
-  agentColor: 'bg-cyan-500/20 text-cyan-400',
-  dotColor: 'bg-cyan-500',
+const COR_STYLES: Record<string, { color: string; dotColor: string }> = {
+  violet:  { color: 'text-violet-400',  dotColor: 'bg-violet-500' },
+  indigo:  { color: 'text-indigo-400',  dotColor: 'bg-indigo-500' },
+  blue:    { color: 'text-blue-400',    dotColor: 'bg-blue-500' },
+  orange:  { color: 'text-orange-400',  dotColor: 'bg-orange-500' },
+  emerald: { color: 'text-emerald-400', dotColor: 'bg-emerald-500' },
+  cyan:    { color: 'text-cyan-400',    dotColor: 'bg-cyan-500' },
 }
 
-function toTitleCase(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ')
-}
+const FALLBACK_STYLE = COR_STYLES.indigo
 
 interface SidebarProps {
   iteracao: Iteration | null
@@ -92,19 +47,15 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
   const agentesAtivos = agentes.filter((a) => a.ativo)
 
   const disciplinas: DisciplinaConfig[] = useMemo(() => {
-    const defaultItems: DisciplinaConfig[] = DEFAULT_ORDER
-      .filter(id => dbDisciplinas.length === 0 || dbDisciplinas.includes(id))
-      .map(id => ({ id, ...DEFAULT_DISCIPLINAS[id] }))
-
-    const customItems: DisciplinaConfig[] = dbDisciplinas
-      .filter(id => !DEFAULT_ORDER.includes(id))
-      .map(id => ({
-        id,
-        ...FALLBACK_CONFIG,
-        label: toTitleCase(id),
-      }))
-
-    return [...defaultItems, ...customItems]
+    return dbDisciplinas.map((d) => {
+      const style = COR_STYLES[d.cor] ?? FALLBACK_STYLE
+      return {
+        id: d.id,
+        label: d.nome,
+        icon: (d.icone && ICON_MAP[d.icone]) || CircleDot,
+        ...style,
+      }
+    })
   }, [dbDisciplinas])
 
   return (
@@ -174,14 +125,7 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
                   )}>
                     {disc.label}
                   </span>
-                  {isActive ? (
-                    <span className={cn(
-                      'text-[8px] font-bold px-1.5 py-0.5 rounded shrink-0',
-                      disc.agentColor
-                    )}>
-                      {disc.agente}
-                    </span>
-                  ) : hasWork ? (
+                  {hasWork ? (
                     <span className={cn(
                       'text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0',
                       progress >= 80

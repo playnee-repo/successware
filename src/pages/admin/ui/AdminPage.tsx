@@ -18,7 +18,6 @@ import {
   useCreateAtividade,
   useUpdateAtividade,
   useDeleteAtividade,
-  useRenameDisciplina,
 } from '@/features/manage-admin/model/useAdminAtividades'
 import {
   useAllDefinicoesComAtividade,
@@ -48,7 +47,18 @@ type DisciplinaDB = string
 type Disciplina = string
 type Secao = 'atividades' | 'definicoes' | 'agentes' | 'configuracoes'
 
-const DISCIPLINAS: string[] = ['descoberta', 'requisitos', 'arquitetura', 'construcao', 'qualidade']
+/** Disciplinas derivadas dinamicamente das atividades cadastradas no banco. */
+function getDiscFromAtividades(atividades: { disciplina: string }[]): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const a of atividades) {
+    if (!seen.has(a.disciplina)) {
+      seen.add(a.disciplina)
+      result.push(a.disciplina)
+    }
+  }
+  return result
+}
 
 const TIPO_PROJETO_OPTIONS: { value: string; label: string }[] = [
   { value: 'startup_mvp',    label: 'Startup MVP' },
@@ -59,26 +69,49 @@ const TIPO_PROJETO_OPTIONS: { value: string; label: string }[] = [
   { value: 'outro',          label: 'Outro' },
 ]
 
-function getDisciplinaLabel(d: string): string {
-  const map: Record<string, string> = {
-    descoberta: 'Descoberta', requisitos: 'Eng. Requisitos', arquitetura: 'Arquitetura',
-    construcao: 'Construção', qualidade: 'Qualidade',
-  }
-  return map[d] ?? d.charAt(0).toUpperCase() + d.slice(1)
-}
-
-// Discipline color tokens
-const DISCIPLINA_COLOR_MAP: Record<string, { text: string; dot: string; bg: string; border: string; accent: string }> = {
-  descoberta:  { text: 'text-violet-400',  dot: 'bg-violet-400',  bg: 'bg-violet-500/10',  border: 'border-violet-500/20',  accent: 'card-accent-violet'  },
-  requisitos:  { text: 'text-indigo-400',  dot: 'bg-indigo-400',  bg: 'bg-indigo-500/10',  border: 'border-indigo-500/20',  accent: 'card-accent-indigo'  },
-  arquitetura: { text: 'text-blue-400',    dot: 'bg-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    accent: 'card-accent-blue'    },
-  construcao:  { text: 'text-orange-400',  dot: 'bg-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/20',  accent: 'card-accent-orange'  },
-  qualidade:   { text: 'text-emerald-400', dot: 'bg-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', accent: 'card-accent-emerald' },
-}
-const DISC_FALLBACK = { text: 'text-muted-foreground', dot: 'bg-muted-foreground', bg: 'bg-muted/30', border: 'border-border', accent: '' }
-function getDisciplinaColor(d: string) { return DISCIPLINA_COLOR_MAP[d] ?? DISC_FALLBACK }
+// Discipline labels and colors from tabela disciplinas (useDisciplinaMap + getDisciplinaClasses)
+import type { Disciplina as DisciplinaEntity } from '@/entities/discipline/model/types'
+import {
+  useDisciplinaMap,
+  useDisciplinas,
+  useCreateDisciplina,
+  useUpdateDisciplina,
+  getDisciplinaLabel,
+  getDisciplinaClasses,
+} from '@/entities/discipline/model/useDisciplinas'
 
 const KNOWN_VARS = ['projeto_nome', 'iteracao_modulo', 'contexto', 'documentos']
+
+// Opções para disciplinas (cor e ícone — alinhados à sidebar e useDisciplinas)
+const DISCIPLINA_COR_OPTIONS: { value: string; label: string }[] = [
+  { value: 'violet',  label: 'Violeta' },
+  { value: 'indigo',  label: 'Indigo' },
+  { value: 'blue',    label: 'Azul' },
+  { value: 'orange',  label: 'Laranja' },
+  { value: 'emerald', label: 'Esmeralda' },
+  { value: 'cyan',    label: 'Ciano' },
+]
+const DISCIPLINA_ICONE_OPTIONS: { value: string; label: string }[] = [
+  { value: '',           label: '— Padrão (bolinha)' },
+  { value: 'Search',     label: 'Lupa (Search)' },
+  { value: 'FileText',   label: 'Documento (FileText)' },
+  { value: 'Layers',    label: 'Camadas (Layers)' },
+  { value: 'Hammer',    label: 'Martelo (Hammer)' },
+  { value: 'Shield',    label: 'Escudo (Shield)' },
+  { value: 'BookOpen',   label: 'Livro (BookOpen)' },
+  { value: 'BarChart2', label: 'Gráfico (BarChart2)' },
+  { value: 'Users',     label: 'Usuários (Users)' },
+  { value: 'MessageSquare', label: 'Mensagem (MessageSquare)' },
+  { value: 'Layout',    label: 'Layout' },
+  { value: 'CheckSquare',   label: 'Check (CheckSquare)' },
+  { value: 'Share2',    label: 'Compartilhar (Share2)' },
+  { value: 'Database',  label: 'Banco (Database)' },
+  { value: 'Terminal',  label: 'Terminal' },
+  { value: 'Code',     label: 'Código (Code)' },
+  { value: 'Plug',      label: 'Plug (Plug)' },
+  { value: 'ClipboardCheck', label: 'Clipboard (ClipboardCheck)' },
+  { value: 'CheckCircle',   label: 'Círculo check (CheckCircle)' },
+]
 
 // ─── Info Tooltip (ícone i com explicação) ─────────────────────────────────
 
@@ -202,6 +235,7 @@ function AtividadeDialog({
   onClose,
   onSave,
   allDisciplinas,
+  discMap,
 }: {
   open: boolean
   initial: (AtividadeFormData & { id?: string }) | null
@@ -209,6 +243,7 @@ function AtividadeDialog({
   onClose: () => void
   onSave: (data: AtividadeFormData & { id?: string }) => Promise<void>
   allDisciplinas: string[]
+  discMap: Map<string, DisciplinaEntity>
 }) {
   const [form, setForm] = useState<AtividadeFormData>(initial ?? EMPTY_ATIVIDADE)
   const [saving, setSaving] = useState(false)
@@ -218,7 +253,7 @@ function AtividadeDialog({
   }, [initial, open])
 
   const isValid = form.nome.trim().length > 0 && form.ordem > 0
-  const discColors = getDisciplinaColor(form.disciplina)
+  const discColors = getDisciplinaClasses(discMap, form.disciplina)
   const agentColors = getAgenteColor(form.agente)
 
   async function handleSave() {
@@ -241,7 +276,7 @@ function AtividadeDialog({
           <div className="flex items-center gap-3 mb-1">
             {/* Live preview badges */}
             <span className={cn('text-[10px] px-2 py-0.5 rounded-full font-medium border', discColors.bg, discColors.border, discColors.text)}>
-              {getDisciplinaLabel(form.disciplina)}
+              {getDisciplinaLabel(discMap, form.disciplina)}
             </span>
             <span className={cn('text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold', agentColors.bg, agentColors.text)}>
               {form.agente}
@@ -381,31 +416,46 @@ function DeleteDialog({
 function NovaDisciplinaDialog({
   open,
   onClose,
-  agentes,
   onCreated,
+  proximaOrdem = 999,
 }: {
   open: boolean
   onClose: () => void
-  agentes: AgenteConfig[]
   onCreated: () => void
+  proximaOrdem?: number
 }) {
   const [discId, setDiscId] = useState('')
-  const createMut = useCreateAtividade()
-  const isValid = discId.trim().length > 0
+  const [nome, setNome] = useState('')
+  const [descricao, setDescricao] = useState('')
+  const [cor, setCor] = useState('indigo')
+  const [icone, setIcone] = useState('')
+  const [ordem, setOrdem] = useState(proximaOrdem)
+  const createMut = useCreateDisciplina()
+  const idNorm = discId.trim().toLowerCase().replace(/\s+/g, '_')
+  const isValid = idNorm.length > 0 && nome.trim().length > 0
+
+  useEffect(() => {
+    if (open) setOrdem(proximaOrdem)
+  }, [open, proximaOrdem])
 
   async function handle() {
     if (!isValid) return
     try {
       await createMut.mutateAsync({
-        nome: 'Nova Atividade',
-        disciplina: discId.trim().toLowerCase().replace(/\s+/g, '_') as DisciplinaDB,
-        agente: agentes[0]?.id ?? 'SCRIBE',
-        ordem: 1,
-        descricao: null,
-        icone: null,
+        id: idNorm,
+        nome: nome.trim(),
+        descricao: descricao.trim() || null,
+        cor,
+        icone: icone || null,
+        ordem: Number(ordem) || 0,
       })
       toast('Disciplina criada')
       setDiscId('')
+      setNome('')
+      setDescricao('')
+      setCor('indigo')
+      setIcone('')
+      setOrdem(proximaOrdem)
       onClose()
       onCreated()
     } catch (e) {
@@ -415,22 +465,77 @@ function NovaDisciplinaDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-card border-border text-foreground max-w-sm ring-inset-subtle">
+      <DialogContent className="bg-card border-border text-foreground max-w-md ring-inset-subtle">
         <DialogHeader>
           <DialogTitle>Nova Disciplina</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">ID da Disciplina *</label>
+              <Input
+                value={discId}
+                onChange={(e) => setDiscId(e.target.value)}
+                placeholder="Ex: design, ux_research"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Identificador único</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição *</label>
+              <Input
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Ex: Design, UX Research"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Sidebar e blocos do projeto</p>
+            </div>
+          </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">ID da Disciplina *</label>
-            <Input
-              value={discId}
-              onChange={(e) => setDiscId(e.target.value)}
-              placeholder="Ex: design, ux_research, devops…"
-              onKeyDown={(e) => { if (e.key === 'Enter') handle() }}
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
+            <Textarea
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Breve descrição da disciplina…"
+              className="min-h-[72px] resize-y"
             />
-            <p className="text-[11px] text-muted-foreground mt-1.5">
-              O ID será usado como identificador (ex: design, ux_research)
-            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Cor</label>
+              <Select value={cor} onValueChange={setCor}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DISCIPLINA_COR_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ícone</label>
+              <Select value={icone || '__default__'} onValueChange={(v) => setIcone(v === '__default__' ? '' : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Padrão" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DISCIPLINA_ICONE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value || '__default__'} value={o.value || '__default__'}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ordem</label>
+              <Input
+                type="number"
+                min={0}
+                value={ordem}
+                onChange={(e) => setOrdem(Number(e.target.value) || 0)}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Ordem na lista</p>
+            </div>
           </div>
         </div>
         <DialogFooter className="pt-2">
@@ -455,57 +560,132 @@ function EditDisciplinaDialog({
   onClose,
 }: {
   open: boolean
-  disciplina: string | null
+  disciplina: DisciplinaEntity | null
   onClose: () => void
 }) {
-  const [newName, setNewName] = useState('')
-  const renameMut = useRenameDisciplina()
+  const [nome, setNome] = useState('')
+  const [descricao, setDescricao] = useState('')
+  const [cor, setCor] = useState('indigo')
+  const [icone, setIcone] = useState('')
+  const [ordem, setOrdem] = useState(0)
+  const updateMut = useUpdateDisciplina()
 
   useEffect(() => {
-    if (open) setNewName(disciplina ?? '')
+    if (open && disciplina) {
+      setNome(disciplina.nome)
+      setDescricao(disciplina.descricao ?? '')
+      setCor(disciplina.cor)
+      setIcone(disciplina.icone ?? '')
+      setOrdem(disciplina.ordem)
+    }
   }, [open, disciplina])
 
-  const normalised = newName.trim().toLowerCase().replace(/\s+/g, '_')
-  const isValid = normalised.length > 0 && normalised !== disciplina
+  const nomeTrim = nome.trim()
+  const isDirty = disciplina && (
+    nomeTrim !== disciplina.nome ||
+    (descricao || '') !== (disciplina.descricao ?? '') ||
+    cor !== disciplina.cor ||
+    (icone || '') !== (disciplina.icone ?? '') ||
+    ordem !== disciplina.ordem
+  )
+  const isValid = nomeTrim.length > 0 && disciplina
 
   async function handle() {
-    if (!isValid || !disciplina) return
+    if (!isValid || !isDirty || !disciplina) return
     try {
-      await renameMut.mutateAsync({ oldName: disciplina, newName: normalised })
-      toast('Disciplina renomeada')
+      await updateMut.mutateAsync({
+        id: disciplina.id,
+        data: {
+          nome: nomeTrim,
+          descricao: descricao.trim() || null,
+          cor,
+          icone: icone || null,
+          ordem: Number(ordem) ?? 0,
+        },
+      })
+      toast('Disciplina atualizada')
       onClose()
     } catch (e) {
       toast(`Erro: ${(e as Error).message}`, 'err')
     }
   }
 
+  if (!disciplina) return null
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-card border-border text-foreground max-w-sm ring-inset-subtle">
+      <DialogContent className="bg-card border-border text-foreground max-w-md ring-inset-subtle">
         <DialogHeader>
-          <DialogTitle>Renomear disciplina</DialogTitle>
+          <DialogTitle>Editar disciplina</DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            ID: <span className="font-mono text-foreground">{disciplina.id}</span>
+          </p>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de exibição *</label>
+              <Input
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Ex: Design, UX Research"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ordem</label>
+              <Input
+                type="number"
+                min={0}
+                value={ordem}
+                onChange={(e) => setOrdem(Number(e.target.value) || 0)}
+              />
+            </div>
+          </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Novo ID *</label>
-            <Input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Ex: design, ux_research, devops…"
-              onKeyDown={(e) => { if (e.key === 'Enter') handle() }}
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
+            <Textarea
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Breve descrição da disciplina…"
+              className="min-h-[72px] resize-y"
             />
-            <p className="text-[11px] text-muted-foreground mt-1.5">
-              Todas as atividades de <strong className="text-muted-foreground">"{disciplina}"</strong> serão renomeadas para o novo ID.
-            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Cor</label>
+              <Select value={cor} onValueChange={setCor}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DISCIPLINA_COR_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ícone</label>
+              <Select value={icone || '__default__'} onValueChange={(v) => setIcone(v === '__default__' ? '' : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Padrão" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DISCIPLINA_ICONE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value || '__default__'} value={o.value || '__default__'}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         <DialogFooter className="pt-2">
           <Button variant="ghost" onClick={onClose} className="text-muted-foreground">Cancelar</Button>
           <Button
             onClick={handle}
-            disabled={!isValid || renameMut.isPending}
+            disabled={!isValid || !isDirty || updateMut.isPending}
           >
-            {renameMut.isPending ? 'Salvando…' : 'Renomear'}
+            {updateMut.isPending ? 'Salvando…' : 'Salvar'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -612,7 +792,9 @@ function SecaoAtividades({
   agentes: AgenteConfig[]
   onOpenInsumos?: (atividadeId: string) => void
 }) {
-  const { data: atividades = [], isLoading } = useAllAtividades()
+  const discMap = useDisciplinaMap()
+  const { data: dbDisciplinas = [], isLoading: disciplinasLoading } = useDisciplinas()
+  const { data: atividades = [], isLoading: atividadesLoading } = useAllAtividades()
   const createMut = useCreateAtividade()
   const updateMut = useUpdateAtividade()
   const deleteMut = useDeleteAtividade()
@@ -620,17 +802,14 @@ function SecaoAtividades({
   const [editTarget, setEditTarget] = useState<(AtividadeFormData & { id?: string }) | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AtividadeRow | null>(null)
   const [novaDisciplinaOpen, setNovaDisciplinaOpen] = useState(false)
-  const [editDisciplina, setEditDisciplina] = useState<string | null>(null)
+  const [editDisciplina, setEditDisciplina] = useState<DisciplinaEntity | null>(null)
 
-  const allDiscs = [
-    ...DISCIPLINAS,
-    ...Array.from(new Set(atividades.map(a => a.disciplina).filter(d => !DISCIPLINAS.includes(d)))),
-  ]
-
-  const grouped = allDiscs.reduce<Record<string, AtividadeRow[]>>((acc, d) => {
-    acc[d] = atividades.filter((a) => a.disciplina === d).sort((a, b) => a.ordem - b.ordem)
+  // Lista de disciplinas vem da tabela (ordem); atividades são agrupadas por disciplina
+  const grouped = dbDisciplinas.reduce<Record<string, AtividadeRow[]>>((acc, d) => {
+    acc[d.id] = atividades.filter((a) => a.disciplina === d.id).sort((a, b) => a.ordem - b.ordem)
     return acc
   }, {} as Record<string, AtividadeRow[]>)
+  const isLoading = disciplinasLoading || atividadesLoading
 
   async function handleSave(data: AtividadeFormData & { id?: string }) {
     if (data.id) {
@@ -669,19 +848,20 @@ function SecaoAtividades({
         </Tooltip>
       </div>
 
-      {allDiscs.map((disc) => {
-        const colors = getDisciplinaColor(disc)
+      {dbDisciplinas.map((disc) => {
+        const colors = getDisciplinaClasses(discMap, disc.id)
+        const atvs = grouped[disc.id] ?? []
         return (
-          <div key={disc} className="rounded-xl border border-border overflow-hidden ring-inset-subtle bg-card/50">
+          <div key={disc.id} className="rounded-xl border border-border overflow-hidden ring-inset-subtle bg-card/50">
             {/* Discipline header */}
             <div className={cn('flex items-center justify-between px-5 py-3.5', colors.bg)}>
               <div className="flex items-center gap-2.5">
                 <span className={cn('w-2 h-2 rounded-full shrink-0', colors.dot)} />
                 <h3 className={cn('text-xs font-semibold uppercase tracking-widest', colors.text)}>
-                  {getDisciplinaLabel(disc)}
+                  {getDisciplinaLabel(discMap, disc.id)}
                 </h3>
                 <span className={cn('text-[10px] font-mono px-2 py-0.5 rounded-md border', colors.bg, colors.border, colors.text)}>
-                  {grouped[disc].length} atividade{grouped[disc].length !== 1 ? 's' : ''}
+                  {atvs.length} atividade{atvs.length !== 1 ? 's' : ''}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -700,7 +880,7 @@ function SecaoAtividades({
                       size="sm"
                       variant="ghost"
                       className={cn('h-7 text-xs px-2.5 rounded-md hover:bg-muted', colors.text)}
-                      onClick={() => setEditTarget({ ...EMPTY_ATIVIDADE, disciplina: disc, ordem: (grouped[disc].length + 1) })}
+                      onClick={() => setEditTarget({ ...EMPTY_ATIVIDADE, disciplina: disc.id, ordem: atvs.length + 1 })}
                     >
                       <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar atividade
                     </Button>
@@ -714,13 +894,13 @@ function SecaoAtividades({
 
             {/* Activity rows */}
             <div className="divide-y divide-border">
-              {grouped[disc].length === 0 ? (
+              {atvs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 gap-3 text-muted-foreground">
                   <GripVertical className="w-6 h-6 opacity-40" />
                   <p className="text-sm italic">Nenhuma atividade nesta disciplina</p>
                 </div>
               ) : (
-                grouped[disc].map((atv) => {
+                atvs.map((atv) => {
                   const agentColors = getAgenteColor(atv.agente)
                   return (
                     <div
@@ -796,7 +976,8 @@ function SecaoAtividades({
         agentes={agentes}
         onClose={() => setEditTarget(null)}
         onSave={handleSave}
-        allDisciplinas={allDiscs}
+        allDisciplinas={dbDisciplinas.map((d) => d.id)}
+        discMap={discMap}
       />
 
       <DeleteDialog
@@ -812,8 +993,8 @@ function SecaoAtividades({
       <NovaDisciplinaDialog
         open={novaDisciplinaOpen}
         onClose={() => setNovaDisciplinaOpen(false)}
-        agentes={agentes}
         onCreated={() => {}}
+        proximaOrdem={dbDisciplinas.length === 0 ? 1 : Math.max(0, ...dbDisciplinas.map((d) => d.ordem)) + 1}
       />
 
       <EditDisciplinaDialog
@@ -1165,10 +1346,8 @@ function SecaoDefinicoes({
     }
   }, [initialAtividadeId])
 
-  const allDiscs = [
-    ...DISCIPLINAS,
-    ...Array.from(new Set(atividades.map(a => a.disciplina).filter(d => !DISCIPLINAS.includes(d)))),
-  ]
+  const discMap = useDisciplinaMap()
+  const allDiscs = getDiscFromAtividades(atividades)
 
   const grouped = allDiscs.reduce<Record<string, typeof atividades>>((acc, d) => {
     acc[d] = atividades.filter((a) => a.disciplina === d)
@@ -1213,13 +1392,13 @@ function SecaoDefinicoes({
       {/* Lista: disciplinas → atividades */}
       <div className="w-64 shrink-0 border-r border-border overflow-y-auto pr-5 py-1 space-y-6">
         {allDiscs.map((disc) => {
-          const colors = getDisciplinaColor(disc)
+          const colors = getDisciplinaClasses(discMap, disc)
           return (
             <div key={disc}>
               <div className="flex items-center gap-2 mb-2.5 px-1">
                 <span className={cn('w-2 h-2 rounded-full shrink-0', colors.dot)} />
                 <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
-                  {getDisciplinaLabel(disc)}
+                  {getDisciplinaLabel(discMap, disc)}
                 </p>
               </div>
               <div className="space-y-1">
