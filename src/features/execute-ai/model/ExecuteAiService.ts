@@ -54,21 +54,25 @@ export class ExecuteAiService {
         }).join('\n\n')}`
       : ''
 
-    // 4. Montar prompt
+    // 4. Montar prompt: contexto sempre enviado; prompt_template da definição é adendo ao agente
     const agentId = configuracao.agente_responsavel || 'SCRIBE'
-    const template = configuracao.prompt_template || `Você é ${agentId}, especialista em ${atividade.nome}.
-Projeto: {{projeto_nome}} | Módulo: {{iteracao_modulo}}
-{{documentos}}
-{{contexto}}
-Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
-
     const contextoCompleto = [contextDocumentos, contextAprovados].filter(Boolean).join('\n\n')
-    const prompt = buildPrompt(template, {
+    const vars = {
       projeto_nome: projeto.nome,
       iteracao_modulo: iteracao.modulo_foco || iteracao.nome,
       documentos: contextDocumentos,
       contexto: contextoCompleto,
-    })
+    }
+
+    const contextBlock = `Projeto: ${vars.projeto_nome} | Módulo/foco: ${vars.iteracao_modulo}
+${vars.documentos ? vars.documentos + '\n\n' : ''}${vars.contexto ? `## Contexto adicional\n\n${vars.contexto}` : ''}`.trim()
+
+    const defaultInstruction = `Com base no contexto acima, gere o conteúdo em Markdown estruturado para a atividade "${atividade.nome}". Retorne APENAS Markdown válido.`
+    const addendum = configuracao.prompt_template
+      ? buildPrompt(configuracao.prompt_template, vars)
+      : defaultInstruction
+
+    const prompt = `${contextBlock}\n\n---\n\n${addendum}`
 
     // 5. Buscar config do agente e chamar IA
     const agenteCfg = await this.agenteRepo.findById(agentId)

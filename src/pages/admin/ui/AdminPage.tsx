@@ -36,7 +36,6 @@ import type { AgenteConfig } from '@/entities/admin/model/types'
 import type { Atividade } from '@/entities/artifact/model/types'
 import { getAiProvider } from '@/shared/api/container'
 import { resolveModel, DEFAULT_MODEL, AVAILABLE_MODELS } from '@/shared/api/IAiProvider'
-import { DEFINICOES_TEMPLATES } from '@/shared/config/definicoes-templates'
 import { getAgenteColor } from '@/shared/lib/agent-colors'
 import { useConfiguracoesSistema, useSetConfiguracao, CONFIG_KEYS } from '@/entities/config/model/useConfiguracoesSistema'
 import { ThemeSelector } from '@/shared/ui/theme-selector'
@@ -721,7 +720,7 @@ function NovaDefinicaoInsumoDialog({
     try {
       const def = await createMut.mutateAsync({
         atividade_id: selectedAtividadeId,
-        nome: 'Nova Configuração',
+        nome: '',
         tipo_insumo: 'nova_definicao',
         agente_responsavel: agentes[0]?.id ?? 'SCRIBE',
         prompt_template: null,
@@ -1017,12 +1016,10 @@ function extractTemplateVars(template: string): string[] {
 
 function DefinicaoEditor({
   definicao,
-  agentes,
   onSaved,
   onDeleted,
 }: {
   definicao: DefinicaoComAtividade
-  agentes: AgenteConfig[]
   onSaved: () => void
   onDeleted: () => void
 }) {
@@ -1030,24 +1027,19 @@ function DefinicaoEditor({
   const deleteMut = useDeleteDefinicao()
 
   const [tipoInsumo, setTipoInsumo] = useState(definicao.tipo_insumo)
-  const [agenteResp, setAgenteResp] = useState(definicao.agente_responsavel)
   const [promptTemplate, setPromptTemplate] = useState(() => collapseBlankLines(definicao.prompt_template ?? ''))
   const [tiposProjeto, setTiposProjeto] = useState<string[]>(definicao.tipos_projeto ?? [])
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [templateSelectValue, setTemplateSelectValue] = useState('__none__')
 
   // Sincronizar estado quando a definição mudar (troca de aba ou refetch do banco)
   useEffect(() => {
     setTipoInsumo(definicao.tipo_insumo)
-    setAgenteResp(definicao.agente_responsavel)
     setPromptTemplate(collapseBlankLines(definicao.prompt_template ?? ''))
     setTiposProjeto(definicao.tipos_projeto ?? [])
-    setTemplateSelectValue('__none__')
   }, [
     definicao.id,
     definicao.tipo_insumo,
-    definicao.agente_responsavel,
     definicao.prompt_template,
     definicao.tipos_projeto,
   ])
@@ -1058,7 +1050,6 @@ function DefinicaoEditor({
 
   const isDirty =
     tipoInsumo !== definicao.tipo_insumo ||
-    agenteResp !== definicao.agente_responsavel ||
     promptTemplate !== collapseBlankLines(definicao.prompt_template ?? '') ||
     tiposProjetoChanged
 
@@ -1073,7 +1064,6 @@ function DefinicaoEditor({
       await updateMut.mutateAsync({
         id: definicao.id,
         tipo_insumo: tipoInsumo,
-        agente_responsavel: agenteResp,
         prompt_template: promptTemplate || null,
         tipos_projeto: tiposProjeto.length > 0 ? tiposProjeto : null,
       })
@@ -1085,8 +1075,6 @@ function DefinicaoEditor({
       setSaving(false)
     }
   }
-
-  const agentColors = getAgenteColor(agenteResp)
 
   return (
     <div className="flex flex-col gap-0 h-full overflow-y-auto">
@@ -1107,72 +1095,18 @@ function DefinicaoEditor({
       </div>
 
       <div className="flex flex-col gap-6 pt-2 px-1">
-        {/* Usar template: preenche prompt de um lugar já mapeado */}
-        <div className="rounded-xl border border-border bg-card/50 p-4 ring-inset-subtle">
-          <label className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-2">
-            Preencher com template (prompt já pronto)
-            <InfoTooltip content="Para que serve: Aplicar um modelo pronto (ex.: Épico, User Story) que já traz o prompt preenchido.\n\nOnde aparece: Só aqui no admin; depois de aplicar, você pode ajustar e salvar." />
-          </label>
-          <Select
-            value={templateSelectValue}
-            onValueChange={(id) => {
-              setTemplateSelectValue(id)
-              if (id === '__none__') return
-              const t = DEFINICOES_TEMPLATES.find((x) => x.tipo_insumo === id)
-              if (t) {
-                setTipoInsumo(t.tipo_insumo)
-                setAgenteResp(t.agente)
-                setPromptTemplate(collapseBlankLines(t.prompt_template))
-                setTemplateSelectValue('__none__')
-              }
-            }}
-          >
-            <SelectTrigger className="w-full max-w-md">
-              <SelectValue placeholder="— Escolher template —" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">— Escolher template —</SelectItem>
-              {DEFINICOES_TEMPLATES.map((t) => (
-                <SelectItem key={t.tipo_insumo} value={t.tipo_insumo}>
-                  {t.nome} ({t.agente})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Fields section */}
         <div className="rounded-xl border border-border bg-card/50 p-6 sm:p-7 space-y-5 ring-inset-subtle">
           <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 flex items-center gap-2">
             Configuração da definição de insumo
-            <InfoTooltip content="Tipo de Insumo: Nome do artefato (ex.: Épico, User Story). Aparece no diálogo “Novo artefato” como opção de agente/configuração.\n\nAgente Responsável: Qual agente de IA gera esse tipo; usa o system prompt configurado na seção Agentes." />
+            <InfoTooltip content="Nome do artefato (ex.: Épico, User Story). Aparece no diálogo “Novo artefato” como opção de configuração." />
           </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">Tipo de Insumo *</label>
-              <Input
-                value={tipoInsumo}
-                onChange={(e) => setTipoInsumo(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">Agente Responsável</label>
-              <div className="flex items-center gap-2">
-                <Select value={agenteResp} onValueChange={setAgenteResp}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agentes.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>{a.id}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <span className={cn('text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold shrink-0', agentColors.bg, agentColors.text)}>
-                  {agentColors.abbr}
-                </span>
-              </div>
-            </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">Nome do artefato *</label>
+            <Input
+              value={tipoInsumo}
+              onChange={(e) => setTipoInsumo(e.target.value)}
+            />
           </div>
         </div>
 
@@ -1229,16 +1163,16 @@ function DefinicaoEditor({
           )}
         </div>
 
-        {/* Prompt Template — Textarea simples (BlockNote causava centenas de linhas em branco) */}
+        {/* Instruções adicionais — adendo ao agente (BlockNote causava centenas de linhas em branco) */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
-            Prompt Template
-            <InfoTooltip content="Para que serve: O texto enviado à IA ao gerar o artefato. Use {{projeto_nome}}, {{iteracao_modulo}}, {{contexto}} para inserir dados do projeto, documentos e artefatos aprovados. Use {{documentos}} para injetar apenas os documentos do projeto separadamente.\n\nOnde aparece: Usado na geração “Texto IA” quando o usuário escolhe esta configuração ao criar um artefato." />
+            Instruções adicionais (adendo ao agente)
+            <InfoTooltip content="Para que serve: Instruções extras enviadas à IA junto com o contexto do projeto. O agente selecionado já tem seu system prompt; este texto é um adendo para artefatos complexos que precisam de mais orientação (ex.: formato de saída, diagrama ER em Mermaid). Use {{projeto_nome}}, {{iteracao_modulo}}, {{contexto}} e {{documentos}} para inserir dados do projeto.\n\nQuando em branco: a IA recebe só o contexto e uma instrução padrão de gerar Markdown." />
           </label>
           <Textarea
             value={promptTemplate}
             onChange={(e) => setPromptTemplate(e.target.value)}
-            placeholder="Você é {{agente}}. Projeto: {{projeto_nome}}…"
+            placeholder="Ex.: Inclua diagrama ER em Mermaid. Use a estrutura: # Modelo de Dados – {{iteracao_modulo}}…"
             className="font-mono text-xs min-h-[200px] resize-y leading-relaxed"
             spellCheck={false}
           />
@@ -1276,10 +1210,8 @@ function DefinicaoEditor({
               size="sm"
               onClick={() => {
                 setTipoInsumo(definicao.tipo_insumo)
-                setAgenteResp(definicao.agente_responsavel)
                 setPromptTemplate(collapseBlankLines(definicao.prompt_template ?? ''))
                 setTiposProjeto(definicao.tipos_projeto ?? [])
-                setTemplateSelectValue('__none__')
               }}
               className="text-muted-foreground h-7 text-xs"
             >
@@ -1369,7 +1301,7 @@ function SecaoDefinicoes({
     try {
       const def = await createMut.mutateAsync({
         atividade_id: selectedAtv,
-        nome: 'Nova Configuração',
+        nome: '',
         tipo_insumo: 'nova_definicao',
         agente_responsavel: agentes[0]?.id ?? 'SCRIBE',
         prompt_template: null,
@@ -1481,7 +1413,6 @@ function SecaoDefinicoes({
             {selectedDefinicao ? (
               <DefinicaoEditor
                 definicao={selectedDefinicao}
-                agentes={agentes}
                 onSaved={() => {}}
                 onDeleted={() => setSelectedDef(atvDefinicoes.find((d) => d.id !== selectedDef)?.id ?? null)}
               />

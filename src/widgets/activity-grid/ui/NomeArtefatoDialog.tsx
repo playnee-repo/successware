@@ -48,13 +48,22 @@ export function NomeArtefatoDialog({
       ? null
       : configuracoes.find(c => c.id === selectedConfiguracaoId) ?? configuracoes[0]
 
-  // Pre-fill name from first config when dialog opens
+  // Nome exibido da definição (ignora placeholder "Nova Configuração" de definições não renomeadas)
+  const getNomeDefinicao = (c: ConfiguracaoAtividade) => {
+    const n = (c.nome || '').trim()
+    return n && n !== 'Nova Configuração' ? n : (c.tipo_insumo || '').trim() || ''
+  }
+
+  const sugestoesNomes = [...new Set(configuracoes.map(c => getNomeDefinicao(c)).filter(Boolean))]
+
+  // Ao abrir: pré-selecionar primeira configuração e preencher nome com ela
   useEffect(() => {
-    if (open && !nome && configuracoes.length > 0) {
-      setNome(configuracoes[0].nome ?? '')
+    if (open && configuracoes.length > 0) {
+      const primeira = configuracoes[0]
+      setSelectedConfiguracaoId(primeira.id)
+      setNome(getNomeDefinicao(primeira))
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, configuracoes])
 
   const handleConfirm = () => {
     const trimmedNome = nome.trim()
@@ -84,7 +93,9 @@ export function NomeArtefatoDialog({
       setUrlTitulo('')
       setSelectedConfiguracaoId(null)
     } else if (value && configuracoes.length > 0) {
-      setSelectedConfiguracaoId(configuracoes[0].id)
+      const primeira = configuracoes[0]
+      setSelectedConfiguracaoId(primeira.id)
+      setNome(getNomeDefinicao(primeira))
     }
     onOpenChange(value)
   }
@@ -164,7 +175,10 @@ export function NomeArtefatoDialog({
                   <button
                     key={cfg.id}
                     type="button"
-                    onClick={() => setSelectedConfiguracaoId(cfg.id)}
+                    onClick={() => {
+                      setSelectedConfiguracaoId(cfg.id)
+                      setNome(getNomeDefinicao(cfg) || nome)
+                    }}
                     className={[
                       'flex items-center gap-2 px-3 py-2 rounded-md text-xs border transition-colors text-left',
                       selectedConfiguracaoId === cfg.id
@@ -172,28 +186,24 @@ export function NomeArtefatoDialog({
                         : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30',
                     ].join(' ')}
                   >
-                    <span
-                      className={[
-                        'text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0',
-                        selectedConfiguracaoId === cfg.id ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground',
-                      ].join(' ')}
-                    >
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
                       {cfg.agente_responsavel}
                     </span>
-                    <span className="font-medium truncate">{cfg.nome || cfg.tipo_insumo}</span>
+                    <span className="font-medium truncate">{getNomeDefinicao(cfg) || '—'}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Nome */}
+          {/* Nome — sugerido pelas definições da atividade */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">
               Nome do artefato
             </label>
             <Input
-              placeholder={`Ex: Épico — ${atividadeNome}`}
+              list="sugestoes-nome-artefato"
+              placeholder={sugestoesNomes.length > 0 ? `Ex: ${sugestoesNomes[0]}` : `Ex: Épico — ${atividadeNome}`}
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               onKeyDown={(e) => {
@@ -202,6 +212,13 @@ export function NomeArtefatoDialog({
               autoFocus
               className="text-sm"
             />
+            {sugestoesNomes.length > 0 && (
+              <datalist id="sugestoes-nome-artefato">
+                {sugestoesNomes.map(s => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+            )}
           </div>
 
           {/* Link fields */}

@@ -62,7 +62,7 @@ insert into atividades (id, disciplina, nome, descricao, agente, ordem, icone) v
 
 -- ============================================================
 -- CONFIGURAÇÕES DE ATIVIDADE (templates de output por atividade)
--- Formato: Markdown estruturado (sincronizado com definicoes-templates.ts)
+-- Formato: Markdown estruturado
 -- ============================================================
 
 -- DESCOBERTA: Briefing Inicial
