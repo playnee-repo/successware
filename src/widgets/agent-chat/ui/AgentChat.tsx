@@ -8,7 +8,9 @@ import { Textarea } from '@/shared/ui/textarea'
 import { ScrollArea } from '@/shared/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar'
 import { cn } from '@/shared/lib/utils'
-import { getGeminiModelForConfig, FALLBACK_CHAT_SYSTEM_PROMPT, buildChatContextPrompt } from '@/shared/config/gemini'
+import { FALLBACK_CHAT_SYSTEM_PROMPT, buildChatContextPrompt } from '@/shared/config/gemini'
+import { getAiProvider } from '@/shared/api/container'
+import type { AiMessage } from '@/shared/api/IAiProvider'
 import { useAllAgentes } from '@/features/manage-admin/model/useAdminAgentes'
 import { getAgenteColor } from '@/shared/lib/agent-colors'
 import type { ChatContext } from '@/entities/agent/model/types'
@@ -30,19 +32,12 @@ interface AgentChatProps {
   chatContext?: ChatContext
 }
 
-function getAgentReply(
+async function getAgentReply(
   chatContext: ChatContext | undefined,
   messages: ChatMessage[],
   userContent: string,
   agentConfig: AgenteConfig | null
 ): Promise<string> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string
-  if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-    return Promise.resolve(
-      'Configure VITE_GEMINI_API_KEY no .env.local para que eu possa responder. Use "Executar IA" nas atividades para gerar conteúdo.'
-    )
-  }
-
   const contextPrompt = chatContext
     ? buildChatContextPrompt({
         projectName: chatContext.projectName,
@@ -56,30 +51,14 @@ function getAgentReply(
   const basePrompt = agentConfig?.chat_system_prompt ?? FALLBACK_CHAT_SYSTEM_PROMPT
   const systemPrompt = basePrompt + (contextPrompt ? `\n\n${contextPrompt}` : '')
 
-  const history: { role: 'user' | 'model'; parts: { text: string }[] }[] = [
-    { role: 'user', parts: [{ text: systemPrompt }] },
-    {
-      role: 'model',
-      parts: [
-        {
-          text: 'Entendido. Vou basear minhas respostas no conteúdo original do insumo, no contexto do projeto e na nossa conversa. Sugiro melhorias concretas em Markdown para você copiar e aplicar.',
-        },
-      ],
-    },
-  ]
+  const history: AiMessage[] = messages.map((msg) => ({
+    role: msg.tipo === 'user' ? 'user' as const : 'assistant' as const,
+    content: msg.conteudo,
+  }))
 
-  for (const msg of messages) {
-    if (msg.tipo === 'user') {
-      history.push({ role: 'user', parts: [{ text: msg.conteudo }] })
-    } else {
-      history.push({ role: 'model', parts: [{ text: msg.conteudo }] })
-    }
-  }
-  history.push({ role: 'user', parts: [{ text: userContent }] })
-
-  const model = getGeminiModelForConfig(agentConfig)
-  const chat = model.startChat({ history })
-  return chat.sendMessage(userContent).then((result) => result.response.text()?.trim() ?? 'Não consegui gerar uma resposta.')
+  const aiProvider = await getAiProvider()
+  const reply = await aiProvider.chatComplete(systemPrompt, history, userContent, agentConfig)
+  return reply || 'Não consegui gerar uma resposta.'
 }
 
 function MessageBubble({ message, agentAbbr = 'SC' }: { message: ChatMessage; agentAbbr?: string }) {

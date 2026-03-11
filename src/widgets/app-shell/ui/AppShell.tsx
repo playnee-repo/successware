@@ -84,7 +84,11 @@ export function AppShell({ iteracao, disciplina = 'requisitos', progresso = 0, a
           {children}
         </div>
         {projeto && advisorEnabled && (
-          <AdvisorWidget projeto={projeto} disciplinaAtual={disciplina} />
+          <AdvisorWidget
+            projeto={projeto}
+            disciplinaAtual={disciplina}
+            cooldownMinutes={config?.advisor_cooldown_minutes ?? 5}
+          />
         )}
       </div>
 

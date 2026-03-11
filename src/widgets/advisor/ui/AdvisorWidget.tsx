@@ -18,14 +18,16 @@ function normalizarDisciplina(raw: string | null): string | null {
 interface AdvisorWidgetProps {
   projeto: Project
   disciplinaAtual: string
+  cooldownMinutes?: number
 }
 
-export function AdvisorWidget({ projeto, disciplinaAtual }: AdvisorWidgetProps) {
+export function AdvisorWidget({ projeto, disciplinaAtual, cooldownMinutes = 5 }: AdvisorWidgetProps) {
   const { data: disciplinasProgresso = [] } = useProjectProgress(projeto.id)
   const { recomendacao, isLoading, error, analisar } = useAdvisor(
     projeto,
     disciplinasProgresso,
     disciplinaAtual,
+    cooldownMinutes,
   )
 
   const [expanded, setExpanded] = useState(() => {

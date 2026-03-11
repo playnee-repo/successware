@@ -35,7 +35,8 @@ import {
 } from '@/features/manage-admin/model/useAdminAgentes'
 import type { AgenteConfig } from '@/entities/admin/model/types'
 import type { Atividade } from '@/entities/artifact/model/types'
-import { genAI } from '@/shared/config/gemini'
+import { getAiProvider } from '@/shared/api/container'
+import { resolveModel, DEFAULT_MODEL, AVAILABLE_MODELS } from '@/shared/api/IAiProvider'
 import { DEFINICOES_TEMPLATES } from '@/shared/config/definicoes-templates'
 import { getAgenteColor } from '@/shared/lib/agent-colors'
 import { useConfiguracoesSistema, useSetConfiguracao, CONFIG_KEYS } from '@/entities/config/model/useConfiguracoesSistema'
@@ -1403,7 +1404,7 @@ function AgenteForm({
         <div className="flex items-center justify-between">
           <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground flex items-center gap-2">
             Identidade
-            <InfoTooltip content="ID: usado nas atividades e definições de insumo para indicar qual agente gera cada artefato. Nome e descrição são exibidos no admin; modelo define qual Gemini usar na geração." />
+            <InfoTooltip content="ID: usado nas atividades e definições de insumo para indicar qual agente gera cada artefato. Nome e descrição são exibidos no admin; modelo define qual LLM usar na geração." />
           </p>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono text-muted-foreground">ID:</span>
@@ -1424,7 +1425,18 @@ function AgenteForm({
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Modelo</label>
-            <Input value={draft.modelo} onChange={(e) => set('modelo', e.target.value)} className="font-mono text-xs" />
+            <Select value={resolveModel(draft.modelo)} onValueChange={(v) => set('modelo', v)}>
+              <SelectTrigger className="font-mono text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {AVAILABLE_MODELS.map((m) => (
+                  <SelectItem key={m.value} value={m.value} className="font-mono text-xs">
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div>
@@ -1458,7 +1470,7 @@ function AgenteForm({
           <Sliders className="w-4 h-4 text-muted-foreground" />
           <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground flex items-center gap-2">
             Parâmetros do Modelo
-            <InfoTooltip content="Temperatura, Top K, Top P e Max Tokens são passados à API do Gemini na geração de artefatos e no chat. Valores altos de temperatura deixam as respostas mais variadas." />
+            <InfoTooltip content="Temperatura, Top P e Max Tokens são passados à API do provedor de IA na geração de artefatos e no chat. Valores altos de temperatura deixam as respostas mais variadas." />
           </p>
         </div>
         <div className="grid grid-cols-4 gap-5">
@@ -1602,23 +1614,9 @@ function AgentePlayground({ agente }: { agente: AgenteConfig }) {
     setRunning(true)
     setOutput('')
     try {
-      const model = genAI.getGenerativeModel({
-        model: agente.modelo || 'gemini-2.5-flash',
-        generationConfig: {
-          temperature: agente.temperatura ?? 0.7,
-          topK: agente.top_k ?? 40,
-          topP: agente.top_p ?? 0.95,
-          maxOutputTokens: agente.max_output_tokens ?? 8192,
-        },
-      })
-      const chat = model.startChat({
-        history: [
-          { role: 'user', parts: [{ text: agente.system_prompt }] },
-          { role: 'model', parts: [{ text: `Entendido. Estou pronto como ${agente.id}.` }] },
-        ],
-      })
-      const result = await chat.sendMessage(input)
-      setOutput(result.response.text())
+      const aiProvider = await getAiProvider()
+      const result = await aiProvider.chatComplete(agente.system_prompt, [], input, agente)
+      setOutput(result)
     } catch (e) {
       setOutput(`Erro: ${(e as Error).message}`)
     } finally {
@@ -1636,7 +1634,7 @@ function AgentePlayground({ agente }: { agente: AgenteConfig }) {
       {/* Info strip */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground font-mono">
-          {agente.modelo || 'gemini-2.5-flash'}
+          {resolveModel(agente.modelo)}
         </span>
         <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground font-mono">
           temp: {agente.temperatura ?? 0.7}
@@ -1805,7 +1803,7 @@ function NewAgenteDialog({
         descricao: null,
         system_prompt: `Você é ${id.trim().toUpperCase()}, um agente especialista.`,
         chat_system_prompt: null,
-        modelo: 'gemini-2.5-flash',
+        modelo: DEFAULT_MODEL,
         temperatura: 0.7,
         top_k: 40,
         top_p: 0.95,
@@ -2031,24 +2029,57 @@ function SecaoConfiguracoes() {
 
         <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
           {/* ADVISOR row */}
-          <div className="flex items-center gap-4 px-5 py-4">
-            <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shrink-0 ring-inset-subtle">
-              <Lightbulb className="w-4 h-4 text-white" />
+          <div className="px-5 py-4 space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shrink-0 ring-inset-subtle">
+                <Lightbulb className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground leading-tight">ADVISOR</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                  Widget flutuante que analisa o projeto com IA e sugere a próxima ação de maior impacto. Aparece na página do projeto.
+                </p>
+              </div>
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
+              ) : (
+                <Toggle
+                  checked={advisorEnabled}
+                  onChange={handleAdvisorToggle}
+                  disabled={isPending}
+                />
+              )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground leading-tight">ADVISOR</p>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-                Widget flutuante que analisa o projeto com IA e sugere a próxima ação de maior impacto. Aparece na página do projeto.
-              </p>
-            </div>
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
-            ) : (
-              <Toggle
-                checked={advisorEnabled}
-                onChange={handleAdvisorToggle}
-                disabled={isPending}
-              />
+            {advisorEnabled && (
+              <div className="flex items-center gap-4 pl-[3.25rem]">
+                <label htmlFor="advisor-cooldown" className="text-xs text-muted-foreground shrink-0">
+                  Intervalo mínimo entre análises automáticas:
+                </label>
+                <select
+                  id="advisor-cooldown"
+                  value={config?.advisor_cooldown_minutes ?? 5}
+                  onChange={(e) => {
+                    const v = Number(e.target.value)
+                    if (Number.isFinite(v) && v >= 1 && v <= 60) {
+                      setConfiguracao(
+                        { chave: CONFIG_KEYS.ADVISOR_COOLDOWN_MINUTES, valor: v },
+                        {
+                          onSuccess: () => toast(`Intervalo definido em ${v} min`),
+                          onError: (err) => toast(err instanceof Error ? err.message : 'Erro ao salvar', 'err'),
+                        },
+                      )
+                    }
+                  }}
+                  disabled={isLoading || isPending}
+                  className="h-8 px-3 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  {[1, 2, 3, 5, 10, 15, 30, 60].map((m) => (
+                    <option key={m} value={m}>
+                      {m} {m === 1 ? 'minuto' : 'minutos'}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
           </div>
         </div>

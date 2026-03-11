@@ -1,4 +1,5 @@
-import { getGeminiModelForConfig, buildPrompt, FALLBACK_SYSTEM_PROMPT } from '@/shared/config/gemini'
+import { buildPrompt, FALLBACK_SYSTEM_PROMPT } from '@/shared/config/gemini'
+import { getAiProvider } from '@/shared/api/container'
 import type { IArtefatoRepository } from '@/entities/artifact/api/IArtefatoRepository'
 import type { IDocumentoRepository } from '@/entities/document/api/IDocumentoRepository'
 import type { IAgenteRepository } from '@/entities/agent/api/IAgenteRepository'
@@ -69,20 +70,12 @@ Gere o conteúdo em Markdown estruturado. Retorne APENAS Markdown válido.`
       contexto: contextoCompleto,
     })
 
-    // 5. Buscar config do agente
+    // 5. Buscar config do agente e chamar IA
     const agenteCfg = await this.agenteRepo.findById(agentId)
     const systemPrompt = agenteCfg?.system_prompt ?? FALLBACK_SYSTEM_PROMPT
-    const model = getGeminiModelForConfig(agenteCfg)
+    const aiProvider = await getAiProvider()
 
-    const chat = model.startChat({
-      history: [
-        { role: 'user', parts: [{ text: systemPrompt }] },
-        { role: 'model', parts: [{ text: `Entendido. Estou pronto para atuar como ${agentId} e gerar documentação em Markdown.` }] },
-      ],
-    })
-
-    const result = await chat.sendMessage(prompt)
-    const responseText = result.response.text()
+    const responseText = await aiProvider.chatComplete(systemPrompt, [], prompt, agenteCfg)
 
     // 6. Limpar backticks e salvar
     const cleaned = responseText

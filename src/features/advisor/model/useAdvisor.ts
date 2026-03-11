@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getGeminiModel } from '@/shared/config/gemini'
+import { getAiProvider } from '@/shared/api/container'
 import type { Project } from '@/entities/project/model/types'
 import type { DisciplinaProgresso } from '@/entities/project/model/useProjectProgress'
 
@@ -27,7 +27,7 @@ async function analisarProjeto(
   disciplinasProgresso: DisciplinaProgresso[],
   disciplinaAtual: string,
 ): Promise<AdvisorRecomendacao> {
-  const model = getGeminiModel()
+  const aiProvider = await getAiProvider()
 
   const progressoTexto = disciplinasProgresso.length
     ? disciplinasProgresso
@@ -49,8 +49,7 @@ ${progressoTexto}
 
 Identifique o gap mais crítico e recomende a próxima ação de maior impacto.`
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text().trim()
+  const text = await aiProvider.generateContent(prompt)
   const clean = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
   return JSON.parse(clean) as AdvisorRecomendacao
 }
@@ -59,17 +58,17 @@ export function useAdvisor(
   projeto: Project | null | undefined,
   disciplinasProgresso: DisciplinaProgresso[],
   disciplinaAtual: string,
+  cooldownMinutes = 5,
 ) {
   const [recomendacao, setRecomendacao] = useState<AdvisorRecomendacao | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const lastCallRef = useRef<number>(0)
   const lastKeyRef = useRef<string>('')
-  const lastDisciplinaRef = useRef<string>(disciplinaAtual)
 
-  // Chave estável que muda só quando o progresso muda de forma significativa
+  // Chave estável: só muda quando o progresso real muda (evita refetch/ruído)
   const progressKey = disciplinasProgresso
-    .map(d => `${d.disciplina}:${d.progresso}`)
+    .map(d => `${d.disciplina}:${Math.round(d.progresso)}`)
     .join(',')
 
   const analisar = async () => {
@@ -88,23 +87,21 @@ export function useAdvisor(
     }
   }
 
-  // Dispara na primeira carga, quando o progresso mudar ou ao trocar de disciplina
+  // Dispara só na primeira carga ou quando o progresso mudar; throttle 5 min (evita token em toda navegação)
   useEffect(() => {
     if (!projeto) return
     const now = Date.now()
     const timeSince = now - lastCallRef.current
     const progressChanged = progressKey !== '' && progressKey !== lastKeyRef.current
-    const disciplinaChanged = disciplinaAtual !== lastDisciplinaRef.current
-
     const isFirstCall = lastCallRef.current === 0
-    const cooldownOk = timeSince > 30_000 // 30s mínimo entre chamadas
+    const COOLDOWN_MS = Math.max(1, Math.min(60, cooldownMinutes)) * 60 * 1000
+    const cooldownOk = timeSince > COOLDOWN_MS
 
-    if (isFirstCall || (progressChanged && cooldownOk) || (disciplinaChanged && cooldownOk)) {
-      lastDisciplinaRef.current = disciplinaAtual
+    if (isFirstCall || (progressChanged && cooldownOk)) {
       analisar()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projeto?.id, progressKey, disciplinaAtual])
+  }, [projeto?.id, progressKey])
 
   return { recomendacao, isLoading, error, analisar }
 }

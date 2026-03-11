@@ -1,37 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
-import type { AgenteConfig } from '@/entities/admin/model/types'
-
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string
-
-if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-  console.warn('[Gemini] API key not configured. Add VITE_GEMINI_API_KEY to .env.local')
-}
-
-export const genAI = new GoogleGenerativeAI(apiKey || 'placeholder')
-
-export const getGeminiModel = () =>
-  genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 8192,
-    },
-  })
-
-export const getGeminiModelForConfig = (config: AgenteConfig | null) => {
-  if (!config) return getGeminiModel()
-  return genAI.getGenerativeModel({
-    model: config.modelo || 'gemini-2.5-flash',
-    generationConfig: {
-      temperature: config.temperatura ?? 0.7,
-      topK: config.top_k ?? 40,
-      topP: config.top_p ?? 0.95,
-      maxOutputTokens: config.max_output_tokens ?? 8192,
-    },
-  })
-}
+/**
+ * Utilitários de prompt — agnósticos de provedor.
+ * O provedor de IA (Gemini/OpenAI) é configurado no container.ts via IAiProvider.
+ */
 
 export function buildPrompt(
   template: string,

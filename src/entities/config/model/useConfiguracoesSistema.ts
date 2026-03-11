@@ -4,12 +4,14 @@ import { configuracaoSistemaService } from '@/shared/api/container'
 // Chaves conhecidas — adicione novas features aqui
 export const CONFIG_KEYS = {
   ADVISOR_ENABLED: 'advisor_enabled',
+  ADVISOR_COOLDOWN_MINUTES: 'advisor_cooldown_minutes',
 } as const
 
 export type ConfigChave = (typeof CONFIG_KEYS)[keyof typeof CONFIG_KEYS]
 
 export type Configuracoes = {
   advisor_enabled: boolean
+  advisor_cooldown_minutes: number
 }
 
 const QUERY_KEY = ['configuracoes_sistema'] as const
@@ -32,7 +34,7 @@ export function useSetConfiguracao() {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Configuracoes>(QUERY_KEY)
       queryClient.setQueryData<Configuracoes>(QUERY_KEY, (old) => ({
-        ...(old ?? ({ advisor_enabled: true } as Configuracoes)),
+        ...(old ?? { advisor_enabled: true, advisor_cooldown_minutes: 5 }),
         [chave]: valor,
       } as Configuracoes))
       return { previous }

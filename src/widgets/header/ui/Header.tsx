@@ -166,7 +166,7 @@ export function Header({ project, iteracoes, activeIteracao, disciplina }: Heade
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-[10px] text-muted-foreground font-medium">Gemini</span>
+          <span className="text-[10px] text-muted-foreground font-medium">GPT</span>
         </div>
       </div>
 

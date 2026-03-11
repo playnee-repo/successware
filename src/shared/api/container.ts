@@ -1,4 +1,30 @@
 import { supabase } from './supabase'
+import type { IAiProvider } from './IAiProvider'
+
+// ── AI Provider ─────────────────────────────────────────────────────────────
+async function createAiProvider(): Promise<IAiProvider> {
+  const provider = (import.meta.env.VITE_AI_PROVIDER as string)?.toLowerCase()
+
+  if (provider === 'gemini') {
+    const { GeminiAiProvider } = await import('./GeminiAiProvider') as { GeminiAiProvider: new (key: string) => IAiProvider }
+    const key = import.meta.env.VITE_GEMINI_API_KEY as string
+    if (!key) console.warn('[AI] VITE_GEMINI_API_KEY não configurada no .env.local')
+    return new GeminiAiProvider(key || '')
+  }
+
+  // default: openai
+  const { OpenAiProvider } = await import('./OpenAiProvider') as { OpenAiProvider: new (key: string) => IAiProvider }
+  const key = import.meta.env.VITE_OPENAI_API_KEY as string
+  if (!key) console.warn('[AI] VITE_OPENAI_API_KEY não configurada no .env.local')
+  return new OpenAiProvider(key || '')
+}
+
+// Lazy singleton — resolved on first access
+let _aiProvider: IAiProvider | null = null
+export async function getAiProvider(): Promise<IAiProvider> {
+  if (!_aiProvider) _aiProvider = await createAiProvider()
+  return _aiProvider
+}
 
 // ── Repositories ────────────────────────────────────────────────────────────
 import { SupabaseProjetoRepository } from '@/entities/project/api/SupabaseProjetoRepository'

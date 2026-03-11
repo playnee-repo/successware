@@ -2,6 +2,7 @@ import type { IConfiguracaoSistemaRepository } from '../api/IConfiguracaoSistema
 
 const CONFIG_DEFAULTS: Record<string, unknown> = {
   advisor_enabled: true,
+  advisor_cooldown_minutes: 5,
 }
 
 export class ConfiguracaoSistemaService {

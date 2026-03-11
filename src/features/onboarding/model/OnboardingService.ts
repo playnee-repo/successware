@@ -1,4 +1,4 @@
-import { getGeminiModel } from '@/shared/config/gemini'
+import { getAiProvider } from '@/shared/api/container'
 import type { IProjetoRepository } from '@/entities/project/api/IProjetoRepository'
 import type { IIteracaoRepository } from '@/entities/iteration/api/IIteracaoRepository'
 import type { Project, ProjectTipo } from '@/entities/project/model/types'
@@ -11,7 +11,7 @@ interface IdeiaEstruturada {
 }
 
 async function estruturarIdeia(ideia: string, tipo: ProjectTipo): Promise<IdeiaEstruturada> {
-  const model = getGeminiModel()
+  const aiProvider = await getAiProvider()
 
   const prompt = `Você recebeu uma ideia de projeto de software descrita livremente por um usuário.
 Seu trabalho é estruturá-la como um projeto profissional, de forma clara e objetiva.
@@ -27,8 +27,7 @@ Responda APENAS com JSON válido (sem markdown, sem explicações), neste format
   "iteracao_nome": "nome da primeira iteração (ex: MVP, Sprint 1, Fase 1)"
 }`
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text().trim()
+  const text = await aiProvider.generateContent(prompt)
   const clean = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
   return JSON.parse(clean) as IdeiaEstruturada
 }

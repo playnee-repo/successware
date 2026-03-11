@@ -16,7 +16,11 @@
       "Bash(grep:*)",
       "Bash(cd /c/Users/micha/Documents/git/prd-v2 && npm run build 2>&1)",
       "Bash(node:*)",
-      "Bash(cd C:/Users/micha/Documents/git/prd-v2 && npm run build 2>&1)"
+      "Bash(cd C:/Users/micha/Documents/git/prd-v2 && npm run build 2>&1)",
+      "Bash(npm install openai)",
+      "Bash(npx tsc --noEmit 2>&1 | head -60)",
+      "Bash(npx vite build 2>&1 | tail -20)",
+      "Bash(npx tsc --noEmit 2>&1)"
     ]
   }
 }
