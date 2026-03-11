@@ -168,11 +168,11 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
                     {colors.abbr}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[11px] font-semibold text-sidebar-foreground block leading-none">
-                      {agent.id}
+                    <span className="text-[11px] font-semibold text-sidebar-foreground block leading-none truncate">
+                      {agent.nome || agent.id}
                     </span>
                     <p className="text-[9px] text-sidebar-foreground/40 leading-none mt-0.5 truncate">
-                      {agent.descricao ?? agent.nome}
+                      {agent.descricao ?? (agent.nome ? agent.id : null)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -185,8 +185,8 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
         </div>
       </div>
 
-      {/* Admin Link */}
-      <div className="px-3 pb-2 shrink-0">
+      {/* Admin Link + version */}
+      <div className="px-3 pb-2 shrink-0 space-y-1.5">
         <Link
           to="/admin"
           className="flex items-center gap-2 px-2.5 py-2 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-150 text-xs font-medium"
@@ -194,6 +194,9 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
           <Settings className="w-3.5 h-3.5 shrink-0" />
           <span>Admin</span>
         </Link>
+        <p className="text-[10px] text-sidebar-foreground/40 font-mono px-2.5" title="Versão do package.json">
+          v{__APP_VERSION__}
+        </p>
       </div>
 
       {/* Iteration Progress Footer */}

@@ -2098,7 +2098,8 @@ function SecaoAgentes() {
                 {colors.abbr}
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-mono font-semibold leading-tight truncate">{ag.id}</span>
+                <span className="text-xs font-semibold leading-tight truncate">{ag.nome || ag.id}</span>
+                <span className="text-[10px] font-mono text-muted-foreground leading-tight truncate">{ag.id}</span>
                 {!ag.ativo && <span className="text-[9px] text-muted-foreground leading-tight">inativo</span>}
               </div>
             </button>
@@ -2370,8 +2371,8 @@ export function AdminPage() {
           })}
         </nav>
 
-        {/* Back link at bottom */}
-        <div className="px-4 py-5 border-t border-sidebar-border mt-auto shrink-0">
+        {/* Back link + version at bottom */}
+        <div className="px-4 py-5 border-t border-sidebar-border mt-auto shrink-0 space-y-2">
           <Link
             to="/"
             className="flex items-center gap-2.5 text-xs text-muted-foreground hover:text-sidebar-foreground transition-colors group py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
@@ -2379,6 +2380,9 @@ export function AdminPage() {
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform shrink-0" />
             <span>Voltar ao App</span>
           </Link>
+          <p className="text-[10px] text-muted-foreground/70 font-mono" title="Versão do package.json">
+            v{__APP_VERSION__}
+          </p>
         </div>
       </aside>
 
