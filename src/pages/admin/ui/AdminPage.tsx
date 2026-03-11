@@ -2303,12 +2303,14 @@ const NAV_ITEMS: { id: Secao; label: string; icon: React.ElementType; descriptio
 export function AdminPage() {
   const [secao, setSecao] = useState<Secao>('atividades')
   const [definicoesInitialAtividadeId, setDefinicoesInitialAtividadeId] = useState<string | null>(null)
+  const { data: disciplinas = [] } = useDisciplinas()
   const { data: agentes = [] } = useAllAgentes()
   const { data: atividades = [] } = useAllAtividades()
   const { data: definicoes = [] } = useAllDefinicoesComAtividade()
 
+  // Badge "Disciplinas" = quantidade na tabela disciplinas; "Agentes" = quantidade na tabela agentes
   const counts: Record<Secao, number> = {
-    atividades: atividades.length,
+    atividades: disciplinas.length,
     definicoes: definicoes.length,
     agentes: agentes.length,
     configuracoes: 0,
@@ -2350,7 +2352,7 @@ export function AdminPage() {
                   )}
                 >
                   <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
-                  <span className="flex-1 text-left truncate">{item.label}</span>
+                  <span className="flex-1 text-left break-words line-clamp-2 leading-tight">{item.label}</span>
                   {counts[item.id] > 0 && (
                     <span className={cn(
                       'text-[10px] font-mono px-2 py-0.5 rounded-full min-w-[20px] text-center shrink-0',
