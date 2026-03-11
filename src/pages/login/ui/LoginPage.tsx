@@ -48,7 +48,7 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">SDLC Copilot</CardTitle>
+          <CardTitle className="text-2xl text-center">Successware</CardTitle>
           <p className="text-sm text-center text-muted-foreground mt-1">
             {mode === 'login' ? 'Entre na sua conta' : 'Crie sua conta e empresa'}
           </p>

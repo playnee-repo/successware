@@ -330,7 +330,7 @@ function OnboardingWizard({ onManual }: OnboardingWizardProps) {
           </div>
         </div>
         <h2 className="text-xl font-black text-foreground tracking-tight">
-          Bem-vindo ao SDLC Copilot
+          Bem-vindo ao Successware
         </h2>
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
           Descreva sua ideia. A IA estrutura o projeto, cria a primeira iteração e te guia pelo processo — do jeito certo.
@@ -456,12 +456,12 @@ export function DashboardPage() {
       <header className="border-b border-border bg-background/90 backdrop-blur-sm sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center glow-primary ring-inset-subtle">
-              <Zap className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-md shadow-indigo-500/20 ring-inset-subtle">
+              <svg viewBox="0 0 32 32" fill="none" className="w-5 h-5"><path d="M16 6 L22 13 L19 13 L19 22 L13 22 L13 13 L10 13 Z" fill="white" opacity="0.95"/><circle cx="16" cy="25" r="1.5" fill="white" opacity="0.6"/></svg>
             </div>
             <div>
-              <h1 className="text-sm font-bold text-foreground tracking-tight">SDLC Copilot</h1>
-              <p className="text-[10px] text-muted-foreground">Plataforma de Engenharia Assistida por IA</p>
+              <h1 className="text-sm font-bold text-foreground tracking-tight">Successware</h1>
+              <p className="text-[10px] text-muted-foreground">Engenharia de Software com IA</p>
             </div>
           </div>
 
@@ -525,10 +525,10 @@ export function DashboardPage() {
             </span>
           </div>
           <h2 className="text-3xl font-black tracking-tight mb-2 text-foreground">
-            SDLC Copilot
+            Successware
           </h2>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            Gerencie todo o ciclo de desenvolvimento de software com agentes de IA especializados — da descoberta à qualidade.
+            Engenharia de software guiada por IA — da descoberta à entrega, com agentes especializados em cada etapa.
           </p>
         </div>
       </div>

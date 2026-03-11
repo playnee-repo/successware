@@ -2149,7 +2149,7 @@ export function AdminPage() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-sidebar-foreground leading-tight truncate">Admin Panel</p>
-              <p className="text-[11px] text-muted-foreground leading-tight">SDLC Copilot</p>
+              <p className="text-[11px] text-muted-foreground leading-tight">Successware</p>
             </div>
           </div>
         </div>

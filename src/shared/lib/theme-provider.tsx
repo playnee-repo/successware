@@ -51,10 +51,10 @@ function readMode(): ThemeMode {
 }
 
 function readColorTheme(): ColorTheme {
-  if (typeof window === 'undefined') return 'default'
+  if (typeof window === 'undefined') return 'slate'
   const stored = localStorage.getItem(COLOR_KEY) as ColorTheme | null
   if (COLOR_THEMES.some((t) => t.id === stored)) return stored!
-  return 'default'
+  return 'slate'
 }
 
 function applyThemeClasses(mode: ThemeMode, colorTheme: ColorTheme) {

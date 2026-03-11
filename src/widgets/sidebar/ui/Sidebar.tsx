@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   Search, FileText, Hammer, Shield, Layers,
-  TrendingUp, Zap, Settings, CircleDot, BookOpen,
+  TrendingUp, Settings, CircleDot, BookOpen,
 } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
 import { useDisciplinas } from '@/features/manage-artifacts/model/useArtifacts'
@@ -111,12 +111,12 @@ export function Sidebar({ iteracao, progresso = 0 }: SidebarProps) {
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border/60 w-60 shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-sidebar-border/60">
-        <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0 glow-primary ring-inset-subtle">
-          <Zap className="w-4 h-4 text-white" />
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20 ring-inset-subtle">
+          <svg viewBox="0 0 32 32" fill="none" className="w-5 h-5"><path d="M16 6 L22 13 L19 13 L19 22 L13 22 L13 13 L10 13 Z" fill="white" opacity="0.95"/><circle cx="16" cy="25" r="1.5" fill="white" opacity="0.6"/></svg>
         </div>
         <div className="min-w-0">
-          <span className="text-sm font-bold text-sidebar-foreground tracking-tight">SDLC Copilot</span>
-          <p className="text-[10px] text-sidebar-foreground/50 mt-0.5 leading-none">Eng. Assistida por IA</p>
+          <span className="text-sm font-bold text-sidebar-foreground tracking-tight">Successware</span>
+          <p className="text-[10px] text-sidebar-foreground/50 mt-0.5 leading-none">Engenharia de Software com IA</p>
         </div>
       </div>
 

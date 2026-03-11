@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SDLC Copilot</title>
+    <title>Successware</title>
     <script>
       (function () {
         var mode = localStorage.getItem('theme-mode');
@@ -13,7 +13,8 @@
         if (mode === 'dark' || (mode !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           classes.push('dark');
         }
-        if (color && color !== 'default') classes.push('theme-' + color);
+        var effectiveColor = color || 'slate';
+        if (effectiveColor !== 'default') classes.push('theme-' + effectiveColor);
         if (classes.length) document.documentElement.className = classes.join(' ');
       })();
     </script>
