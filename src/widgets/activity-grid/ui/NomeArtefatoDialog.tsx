@@ -133,6 +133,7 @@ export function NomeArtefatoDialog({
                   type="button"
                   disabled={opt.disabled || (opt.value === 'texto' && isTextoIaDisabled)}
                   onClick={() => !(opt.disabled || (opt.value === 'texto' && isTextoIaDisabled)) && setTipo(opt.value)}
+                  title={opt.value === 'texto' && isTextoIaDisabled ? 'Configure definições de insumo para esta atividade no Admin' : undefined}
                   className={[
                     'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
                     opt.disabled || (opt.value === 'texto' && isTextoIaDisabled)
@@ -147,6 +148,11 @@ export function NomeArtefatoDialog({
                 </button>
               ))}
             </div>
+            {isTextoIaDisabled && (
+              <p className="text-[11px] text-muted-foreground/80">
+                Para habilitar <strong className="text-muted-foreground">Texto IA</strong>, adicione definições de insumo para a atividade &quot;{atividadeNome}&quot; em <strong className="text-muted-foreground">Admin → Configurações de Atividade</strong>.
+              </p>
+            )}
           </div>
 
           {/* Seletor de agente/configuração — sempre visível para Texto IA */}

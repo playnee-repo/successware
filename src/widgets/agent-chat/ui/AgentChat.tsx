@@ -278,9 +278,11 @@ export function AgentChat({
                   ONLINE
                 </span>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                {agentCfg?.descricao ?? 'Especialista no projeto e no contexto atual. Ajuda a melhorar os itens gerados.'}
-              </p>
+              <div className="max-h-24 overflow-y-auto mt-0.5 pr-1 text-[10px] text-muted-foreground leading-snug">
+                <p>
+                  {agentCfg?.descricao ?? 'Especialista no projeto e no contexto atual. Ajuda a melhorar os itens gerados.'}
+                </p>
+              </div>
               {contextLine && (
                 <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground bg-muted/50 border border-border/40 rounded-md px-2 py-1">
                   <MapPin className="w-3 h-3 text-primary shrink-0" />

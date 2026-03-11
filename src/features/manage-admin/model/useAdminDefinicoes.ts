@@ -38,7 +38,10 @@ export function useCreateConfiguracao() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: ConfiguracaoInsert) => adminService.createConfiguracao(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK })
+      qc.invalidateQueries({ queryKey: ['atividades-progresso'] })
+    },
   })
 }
 
@@ -50,7 +53,10 @@ export function useUpdateConfiguracao() {
   return useMutation({
     mutationFn: ({ id, ...payload }: ConfiguracaoUpdate & { id: string }) =>
       adminService.updateConfiguracao(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK })
+      qc.invalidateQueries({ queryKey: ['atividades-progresso'] })
+    },
   })
 }
 
@@ -61,7 +67,10 @@ export function useDeleteConfiguracao() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => adminService.deleteConfiguracao(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK })
+      qc.invalidateQueries({ queryKey: ['atividades-progresso'] })
+    },
   })
 }
 

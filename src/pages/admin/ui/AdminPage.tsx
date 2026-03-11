@@ -271,10 +271,9 @@ function AtividadeDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-card border-border text-foreground max-w-md ring-inset-subtle">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-1">
-            {/* Live preview badges */}
+      <DialogContent className="bg-card border-border text-foreground max-w-md h-[85vh] max-h-[85vh] flex flex-col gap-0 p-0 ring-inset-subtle overflow-hidden">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4 border-b border-border/60">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className={cn('text-[10px] px-2 py-0.5 rounded-full font-medium border', discColors.bg, discColors.border, discColors.text)}>
               {getDisciplinaLabel(discMap, form.disciplina)}
             </span>
@@ -282,79 +281,81 @@ function AtividadeDialog({
               {form.agente}
             </span>
           </div>
-          <DialogTitle className="text-base">
+          <DialogTitle className="text-base mt-2">
             {initial?.id ? 'Editar atividade' : 'Nova atividade'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 py-4">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome *</label>
-            <Input
-              value={form.nome}
-              onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-              placeholder="Nome da atividade"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
-            <BlockNoteField
-              value={form.descricao}
-              onChange={(val: string) => setForm((f) => ({ ...f, descricao: val }))}
-              placeholder="Descrição da atividade"
-              minHeight="120px"
-              variant="compact"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6">
+          <div className="space-y-5 py-5 pr-2">
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Disciplina *</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome *</label>
               <Input
-                value={form.disciplina}
-                onChange={(e) => setForm((f) => ({ ...f, disciplina: e.target.value }))}
-                list="disciplinas-datalist"
-                placeholder="Ex: descoberta, design, devops…"
-              />
-              <datalist id="disciplinas-datalist">
-                {allDisciplinas.map((d) => <option key={d} value={d} />)}
-              </datalist>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Agente *</label>
-              <Select value={form.agente} onValueChange={(v) => setForm((f) => ({ ...f, agente: v }))}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Agente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agentes.filter((a) => a.ativo).map((a) => (
-                    <SelectItem key={a.id} value={a.id}>{a.id}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ordem *</label>
-              <Input
-                type="number"
-                min={1}
-                value={form.ordem}
-                onChange={(e) => setForm((f) => ({ ...f, ordem: Number(e.target.value) }))}
+                value={form.nome}
+                onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+                placeholder="Nome da atividade"
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ícone</label>
-              <Input
-                value={form.icone}
-                onChange={(e) => setForm((f) => ({ ...f, icone: e.target.value }))}
-                placeholder="FileText, BookOpen…"
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
+              <BlockNoteField
+                value={form.descricao}
+                onChange={(val: string) => setForm((f) => ({ ...f, descricao: val }))}
+                placeholder="Descrição da atividade"
+                minHeight="120px"
+                variant="compact"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Disciplina *</label>
+                <Input
+                  value={form.disciplina}
+                  onChange={(e) => setForm((f) => ({ ...f, disciplina: e.target.value }))}
+                  list="disciplinas-datalist"
+                  placeholder="Ex: descoberta, design, devops…"
+                />
+                <datalist id="disciplinas-datalist">
+                  {allDisciplinas.map((d) => <option key={d} value={d} />)}
+                </datalist>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Agente *</label>
+                <Select value={form.agente} onValueChange={(v) => setForm((f) => ({ ...f, agente: v }))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Agente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agentes.filter((a) => a.ativo).map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.nome || a.id}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ordem *</label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={form.ordem}
+                  onChange={(e) => setForm((f) => ({ ...f, ordem: Number(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ícone</label>
+                <Input
+                  value={form.icone}
+                  onChange={(e) => setForm((f) => ({ ...f, icone: e.target.value }))}
+                  placeholder="FileText, BookOpen…"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="pt-2">
+        <DialogFooter className="shrink-0 px-6 py-4 border-t border-border/60 bg-muted/30">
           <Button variant="ghost" onClick={onClose} className="text-muted-foreground">Cancelar</Button>
           <Button
             onClick={handleSave}

@@ -227,7 +227,10 @@ function ActivityCard({ atividade, projeto, iteracao }: ActivityCardProps) {
         <div className="flex items-center justify-end mt-3">
           <Button
             size="sm"
-            onClick={() => setDialogOpen(true)}
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['atividades-progresso'] })
+              setDialogOpen(true)
+            }}
             disabled={isExecuting}
             title={
               isExecuting
